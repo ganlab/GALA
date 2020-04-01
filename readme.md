@@ -254,4 +254,4 @@ optional arguments:
 ```
 
 ## Licence
-GALA is distributed under MIT license. See the [LICENSE file](https://github.com/ganlab/gala/LICENSE) for details
+GALA is distributed under MIT license. See the [LICENSE file](https://github.com/ganlab/GALA/blob/master/LICENSE) for details
