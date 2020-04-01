@@ -16,7 +16,8 @@
 ## Installation
 GALA can run directly from gala folder
 >git clone [https://github.com/ganlab/gala.git](https://github.com/ganlab/gala.git)
->cd gala
+
+>cd GALA
 
 **Or**
 You can run `install` to add it to your **PATH**	
