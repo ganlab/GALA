@@ -1,0 +1,30 @@
+#!/usr/bin/env python
+################################################################
+#  This file part of GALA Gap-free chromosome-scALe Assembler  #
+#  Auther: Mohamed awad                                        #
+#  Company: Xiangchao Gan lab (MPIPZ)                          #
+#  Released under the (MIT) license (see LICENSE file)         #
+################################################################
+iimport os
+import sys
+scr='src'
+path=os.path.dirname(os.path.abspath(__file__))
+absolute=os.path.join(path,scr)
+sys.path.insert(0, absolute)
+from new_genome import genomes
+import argparse
+parser = argparse.ArgumentParser(prog="newgenome",usage='%(prog)s -h  [options] <draft_names & paths> <path to cut files>',description='Produce mis-assembly free genomes, part of GALA Gap-free chromosome-scALe Assembler')
+
+parser.add_argument("draft",nargs=1,type=str,help='Draft names and paths\t[required]')
+parser.add_argument("cut_files",nargs=1,type=str,help='path_to_cut_files" \t [required]')
+parser.add_argument("-f",nargs=1, type=str, default=['new_genome'], metavar='Output files name\t[default new_genome]',dest="name")
+parser.add_argument("-o",nargs=1, type=str, default=[os.getcwd()], metavar='output files path\t[default current directory]',dest="output")
+parser.add_argument('-v','--version', action='version', version='%(prog)s 1.0.0')
+args = parser.parse_args()
+gathering=args.cut_files[0]
+draft=args.draft[0]
+output=args.output[0]
+name=args.name[0]
+genomes(genomes=draft,gathering=gathering,gathering_name=name,outpath=output)
+if '-v':
+	parser.parse_args(['-v'])

@@ -1,0 +1,26 @@
+#!/usr/bin/env python
+################################################################
+#  This file part of GALA Gap-free chromosome-scALe Assembler  #
+#  Auther: Mohamed awad                                        #
+#  Company: Xiangchao Gan lab (MPIPZ)                          #
+#  Released under the (MIT) license (see LICENSE file)         #
+################################################################
+import os
+import sys
+scr='src'
+path=os.path.dirname(os.path.abspath(__file__))
+absolute=os.path.join(path,scr)
+sys.path.insert(0, absolute)
+from comp_generator import comp_generator
+import argparse
+parser = argparse.ArgumentParser(prog="comp",usage='%(prog)s -h  [options] <draft_names & paths> ',description='generate genome comparison files, part of GALA Gap-free chromosome-scALe Assembler')
+
+parser.add_argument("drafts",nargs=1,type=str,help='Draft names and paths\t[required]')
+parser.add_argument("-o",nargs=1, type=str, default=[os.getcwd()], metavar='output files path\t[default current directory]',dest="output")
+parser.add_argument('-v','--version', action='version', version='%(prog)s 1.0.0')
+args = parser.parse_args()
+drafts=args.drafts[0]
+output=args.output[0]
+comp_generator(genomes=drafts,output=output)
+if '-v':
+	parser.parse_args(['-v'])

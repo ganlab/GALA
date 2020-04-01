@@ -1,0 +1,14 @@
+#!/usr/bin/env python
+################################################################
+#  This file part of GALA Gap-free chromosome-scALe Assembler  #
+#  Auther: Mohamed awad                                        #
+#  Company: Xiangchao Gan lab (MPIPZ)                          #
+#  Released under the (MIT) license (see LICENSE file)         #
+################################################################
+a=['cca','comp','mad','newgenome','newgenome2','readsep','reformat','seprator']
+for i in a:
+    b='/usr/bin/'
+    c=''.join(list(open(i)))
+    c=c.replace('path=os.getcwd()','path="'+b+'/bin"')
+    d=open(b+i,'w')
+    d.writelines(c)

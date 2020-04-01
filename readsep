@@ -1,0 +1,27 @@
+#!/usr/bin/env python
+################################################################
+#  This file part of GALA Gap-free chromosome-scALe Assembler  #
+#  Auther: Mohamed awad                                        #
+#  Company: Xiangchao Gan lab (MPIPZ)                          #
+#  Released under the (MIT) license (see LICENSE file)         #
+################################################################
+import os
+import sys
+scr='src'
+path=os.path.dirname(os.path.abspath(__file__))
+absolute=os.path.join(path,scr)
+sys.path.insert(0, absolute)
+from read_extract import read_extract
+import argparse
+parser = argparse.ArgumentParser(prog="readsep",usage='%(prog)s -h [options] <reads> <read_titles>',description='extract reads from fasta or fastq, part of GALA Gap-free chromosome-scALe Assembler',)
+parser.add_argument("reads",nargs=1,type=str,help='raw/corrected reads \t [required]')
+parser.add_argument("read_titles",nargs=1,type=str,help='read names\t[required]')
+parser.add_argument("-f",nargs=1, type=str, default=['fa'], metavar='input file format (fa/fq)',dest="format")
+parser.add_argument('-v','--version', action='version', version='%(prog)s 1.0.0')
+args = parser.parse_args()
+reads=args.reads[0]
+names=args.read_titles[0]
+formats=args.format[0]
+read_extract(reads,names,formats)
+if '-v':
+	parser.parse_args(['-v'])

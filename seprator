@@ -1,0 +1,32 @@
+#!/usr/bin/env python
+################################################################
+#  This file part of GALA Gap-free chromosome-scALe Assembler  #
+#  Auther: Mohamed awad                                        #
+#  Company: Xiangchao Gan lab (MPIPZ)                          #
+#  Released under the (MIT) license (see LICENSE file)         #
+################################################################
+import os
+import sys
+scr='src'
+path=os.path.dirname(os.path.abspath(__file__))
+absolute=os.path.join(path,scr)
+sys.path.insert(0, absolute)
+from bam_seprator import bam_seprator
+import argparse
+parser = argparse.ArgumentParser(prog="seprator",usage='%(prog)s -h  [options] <draft_names & paths> ',description='Separate each contigs correlated read names, part of GALA Gap-free chromosome-scALe Assembler')
+
+parser.add_argument("contig_names",nargs=1,type=str,help='contig_names \t [required]')
+parser.add_argument("bam_file",nargs=1,type=str,help='mapping bam file\t[required]')
+parser.add_argument("-o",nargs=1, type=str, default=[os.getcwd()], metavar='output files path\t[default current directory]',dest="output")
+parser.add_argument("-f",nargs=1, type=str, default=['bam_seprator'], metavar='Output files name\t[default bam_seprator]',dest="name")
+parser.add_argument("-b",nargs=1, type=str, default=['bams'], metavar='output folder name\t [default bams]',dest="folders")
+parser.add_argument('-v','--version', action='version', version='%(prog)s 1.0.0')
+args = parser.parse_args()
+contig_names=args.contig_names[0]
+bam_file=args.bam_file[0]
+output=args.output[0]
+name=args.name[0]
+folders=args.folders[0]
+bam_seprator(contig_name=contig_names,bam_file=bam_file,out_put_path=output,out_put_name=name,folder_name=folders)
+if '-v':
+	parser.parse_args(['-v'])

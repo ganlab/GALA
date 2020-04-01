@@ -1,0 +1,38 @@
+#!/usr/bin/env python
+################################################################
+#  This file part of GALA Gap-free chromosome-scALe Assembler  #
+#  Auther: Mohamed awad                                        #
+#  Company: Xiangchao Gan lab (MPIPZ)                          #
+#  Released under the (MIT) license (see LICENSE file)         #
+################################################################
+import os
+import sys
+scr='src'
+path=os.path.dirname(os.path.abspath(__file__))
+absolute=os.path.join(path,scr)
+sys.path.insert(0, absolute)
+from joining import reformated
+import argparse
+parser = argparse.ArgumentParser(prog="reformat",usage='%(prog)s -h  [options] <path/to/mapping_files> <number of drafts>',description='Re-formatting mapping files tool, part of GALA Gap-free chromosome-scALe Assembler')
+
+parser.add_argument("mapping_files",nargs=1,type=str,help='mapping paf file \t [required]')
+parser.add_argument("drafts",nargs=1,type=int,help='Number of drafts\t[required]')
+parser.add_argument("-b",nargs=1, type=int, default=[5000], metavar='Alignment block length\t [default 5000]',dest="block")
+parser.add_argument("-p",nargs=1, type=int, default=[70], metavar='Alignment identity percentage\t [default 70%]',dest="percent")
+parser.add_argument("-c",nargs=1, type=int, default=[5000], metavar='Shortest contig length\t [default 5000]',dest="contig")
+parser.add_argument("-q",nargs=1, type=int, default=[20], metavar='Mapping quality\t [default 20]',dest="qty")
+parser.add_argument("-f",nargs=1, type=str, default=['reformated'], metavar='Output files name\t[default reformated]',dest="name")
+parser.add_argument("-o",nargs=1, type=str, default=[os.getcwd()], metavar='output files path\t[default current directory]',dest="output")
+parser.add_argument('-v','--version', action='version', version='%(prog)s 1.0.0')
+args = parser.parse_args()
+paf=args.mapping_files[0]
+drafts=args.drafts[0]
+block=args.block[0]
+percent=args.percent[0]
+qty=args.qty[0]
+output=args.output[0]
+name=args.name[0]
+contig=args.contig[0]
+reformated(path=paf,number_of_drafts=drafts,block=block,percentage=percent,shortage_contig=contig,quality=qty,files=True,output=name+'_',out_path=output)
+if '-v':
+	parser.parse_args(['-v'])

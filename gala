@@ -1,0 +1,180 @@
+#!/usr/bin/env python
+################################################################
+#  This file part of GALA Gap-free chromosome-scALe Assembler  #
+#  Auther: Mohamed awad                                        #
+#  Company: Xiangchao Gan lab (MPIPZ)                          #
+#  Released under the (MIT) license (see LICENSE file)         #
+################################################################
+import os
+import sys
+scr='src'
+path=os.path.dirname(os.path.abspath(__file__))
+absolute=os.path.join(path,scr)
+sys.path.insert(0, absolute)
+from comp_generator import comp_generator
+from cut_gathering import cut_gathering
+from new_genome import genomes
+from scaffolding import scaffolding
+from bam_seprator import bam_seprator
+from read_extract import read_extract
+import argparse
+parser = argparse.ArgumentParser(prog="gfca",usage='%(prog)s -h  [options] <draft_names & paths> <fa/fq> <reads> <platform>',description='GALA Gap-free chromosome-scALe Assembler')
+parser.add_argument("draft_names",nargs=1,type=str,help='Draft names and paths\t[required]')
+parser.add_argument("input_file",nargs=1,type=str,help='input type (fq/fa) \t[required]')
+parser.add_argument("reads",nargs=1,type=str,help='raw/corrected reads\t[required]')
+parser.add_argument("sequencing_platform",nargs=1,type=str,help='\n\tpacbio-raw\n\tpacbio-corrected\n\tnanopore-raw\n\tnanopore-corrected\n\t\t[required]')
+parser.add_argument("-a",nargs='*', type=str, default=['canu'], help='Chr-by_Chr assembler (canu flye miniasm) \t [default canu]',dest="assembler")
+parser.add_argument("-b",nargs=1, type=int, default=[5000], metavar='Alignment block length\t [default 5000]',dest="block")
+parser.add_argument("-p",nargs=1, type=int, default=[70], metavar='Alignment identity percentage\t [default 70%]',dest="percent")
+parser.add_argument("-c",nargs=1, type=int, default=[5000], metavar='Shortest contig length\t [default 5000]',dest="contig")
+parser.add_argument("-q",nargs=1, type=int, default=[20], metavar='Mapping quality\t [default 20]',dest="qty")
+parser.add_argument("-f",nargs=1, type=str, default=['gathering'], metavar='Output files name\t[default gathering]',dest="name")
+parser.add_argument("-o",nargs=1, type=str, default=[os.getcwd()], metavar='output files path\t[default current directory]',dest="output")
+parser.add_argument('-v','--version', action='version', version='%(prog)s 1.0.0')
+args = parser.parse_args()
+draft_names=args.draft_names[0]
+reads=args.reads[0]
+input_file=args.input_file[0]
+platform=args.sequencing_platform[0]
+block=args.block[0]
+percent=args.percent[0]
+qty=args.qty[0]
+output=args.output[0]
+name=args.name[0]
+contig=args.contig[0]
+assembler=args.assembler
+os.chdir(output)
+os.mkdir('gfca')
+new_dir=os.path.join(output,'gfca')
+os.chdir(new_dir)
+workdir=os.getcwd()
+comp_generator(genomes=draft_names,output=workdir)
+op=''.join(list(open('draft_comp.sh')))
+op=op.replace('comparison','preliminary_comparison')
+om=open('draft_comp.sh','w')
+om.writelines(op)
+om.close()
+os.system('sh draft_comp.sh')
+path_to_paf='preliminary_comparison'
+number_of_drafts=''.join(list(open(draft_names))).count('=')
+cut_gathering(path=path_to_paf,number_of_drafts=number_of_drafts,block=block,percentage=percent,shortage_contig=contig,quality=qty,out_file=True,out_name=name,out_path=workdir)
+os.mkdir('new_genomes')
+genomes(genomes=draft_names,gathering=os.path.join(workdir,name),gathering_name=name,outpath=workdir+'/new_genomes')
+new_path=workdir+'/'+'new_genomes/'
+os.mkdir('gap_free_comp')
+outpath=workdir+'/gap_free_comp'
+comp_generator(genomes=new_path+'new_draft_names_paths.txt',output=outpath)
+new_path=outpath
+os.chdir(outpath)
+os.system('sh draft_comp.sh')
+path_to_drafts='comparison'
+scaffolding(path='comparison',number_of_drafts=number_of_drafts,block=block,percentage=percent,shortage_contig=contig,quality=qty,out_file=True,output_name=name,output=outpath)
+new_path=output+'/'+'new_genomes/'
+os.chdir(workdir+'/new_genomes')
+os.system('for i in *.fa; do bwa index $i;done')
+os.chdir(workdir)
+os.mkdir('mapping')
+mapping=list(open('new_genomes/new_draft_names_paths.txt'))
+for i in mapping:
+    dirname=i.split('=')[0]
+    os.system('mkdir mapping/'+dirname)
+for i in mapping:
+    dirname=i.split('=')[0]
+    genomdir=i.split('=')[1].replace('\n','')
+    os.system('bwa mem '+genomdir+' '+reads+'| samtools sort | samtools view -Sb > mapping/'+dirname+'/mapping.bam')
+    os.system('samtools index mapping/'+dirname+'/mapping.bam')
+new_path=workdir+'/'+'mapping/'
+os.chdir(workdir+'/mapping')
+for i in mapping:
+    dirname=i.split('=')[0]
+    os.chdir(new_path+dirname)
+    os.system('samtools view -H mapping.bam| grep SQ|cut -f 2|cut -d : -f 2 > contig_names')
+
+for i in mapping:
+    dirname=i.split('=')[0]
+    bam_seprator(contig_name=new_path+dirname+'/contig_names',bam_file=new_path+dirname+'/mapping.bam',out_put_path=new_path+dirname)
+    os.chdir(new_path+dirname)
+    os.system('sh bam_seprator.sh')
+    os.chdir(new_path+dirname+'/bams')
+    os.system('for i in *; do samtools view $i | cut -f 1 > $i.read_names;done;')
+dirnames=[]
+for i in mapping:
+    dirnames.append(i.split('=')[0])
+scaffs=os.path.join(outpath,name)
+li=os.listdir(scaffs)
+
+ok={}
+for i in dirnames:
+    ok[i]={}
+for base in dirnames:
+    op=list(open(scaffs+'/'+name+'_'+base+'.scaff'))
+    oa=open(new_path+base+'/scaffolds','w')
+    oa.writelines('cd bams\n')
+    nn=1
+    for bas in op:
+        if bas[:6]=='scaff_':
+            rr=bas.split('\t')
+            rmn=rr[-2]
+            rr=rr[:-2]
+            rr='\t'.join(rr[1:]).replace('\n','')
+            rr=rr.replace('\t','.bam.read_names ')
+            rr='cat '+rr+'.bam.read_names > ../scaffold_'+str(nn)+'.read_names\n'
+            ok[base]['scaffold_'+str(nn)]=str(rmn).replace('\n','')
+            oa.writelines(rr)
+            nn=nn+1
+    oa.close()
+for i in dirnames:
+    os.chdir(os.path.join(new_path,i))
+    os.system('sh scaffolds')
+    mm=list(open('scaffolds'))[1:]
+    for base in mm:
+        mn=base.split(' > ../')[-1].replace('\n','')
+        read_extract(reads,mn,input_file)
+if 'canu' in assembler:
+    for i in dirnames:
+        rmn=open(new_path+i+'/assembly_c.sh','w')
+        os.chdir(os.path.join(new_path,i))
+        mm=list(open('scaffolds'))[1:]
+        for base in mm:
+            mn=base.split(' > ../')[-1].replace('.read_names\n','.read.fq')
+            rmn.writelines('canu -p canu_'+mn.replace('.read.fq','')+ ' -d canu_'+mn.replace('.read.fq','')+' genomeSize='+str(int(ok[i][mn.replace('.read.fq','')])/1000000)+ 'm -' +platform+' '+new_path+i+'/'+mn+'\n')
+if 'flye' in assembler:
+    for i in dirnames:
+        rmn=open(new_path+i+'/assembly_f.sh','w')
+        os.chdir(os.path.join(new_path,i))
+        mm=list(open('scaffolds'))[1:]
+        for base in mm:
+            mn=base.split(' > ../')[-1].replace('.read_names\n','.read.fq')
+            rmn.writelines('cd '+workdir+'/chr_by_chr/'+i+'\n')
+            rmn.writelines('mkdir flye_'+mn.replace('.read.fq','\ncd flye_')+mn.replace('.read.fq','\n'))
+            rmn.writelines('flye --out-dir flye_'+mn.replace('.read.fq','')+' --genome-size '+str(int(ok[i][mn.replace('.read.fq','')])/1000000)+ 'm --' +platform.replace('nanopore','nano').replace('corrected','corr')+' '+new_path+i+'/'+mn+'\n')
+if 'miniasm' in assembler:
+    for i in dirnames:
+        rmn=open(new_path+i+'/assembly_m.sh','w')
+        os.chdir(os.path.join(new_path,i))
+        mm=list(open('scaffolds'))[1:]
+        for base in mm:
+            mn=base.split(' > ../')[-1].replace('.read_names\n','.read.fq')
+            rmn.writelines('cd '+workdir+'/chr_by_chr/'+i+'\n')
+            rmn.writelines('mkdir miniasm_'+mn.replace('.read.fq','\ncd miniasm_')+mn.replace('.read.fq','\n'))
+            if 'pacbio' in platform:
+                rmn.writelines('minimap2 -x ava-pb '+new_path+i+'/'+mn+' '+new_path+i+'/'+mn+' | gzip -1 > '+mn.replace('.read.fq','')+'.paf.gz\n')
+                rmn.writelines('miniasm -f '+new_path+i+'/'+mn+' '+mn.replace('.read.fq','')+'.paf.gz > '+mn.replace('.read.fq','.gfa\n'))
+                rmn.writelines("awk "+"'/^S/{print "+'">"$2"\\n"$3}'+"' "+mn.replace('.read.fq','.gfa ')+ '> '+mn.replace('.read.fq','.fa\n'))
+                rmn.writelines('flye --polish-target '+mn.replace('.read.fq','.fa') +' --out-dir . -'+platform.replace('corrected','corr')+' '+new_path+i+'/'+mn+' --iterations 3'+'\n')
+            elif 'nanopore' in platform:
+                rmn.writelines('minimap2 -x ava-ont '+new_path+i+'/'+mn+' '+new_path+i+'/'+mn+' | gzip -1 > '+mn.replace('.read.fq','')+'.paf.gz\n')
+                rmn.writelines('miniasm -f '+new_path+i+'/'+mn+' '+mn.replace('.read.fq','')+'.paf.gz > '+mn.replace('.read.fq','.gfa\n'))
+                rmn.writelines("awk "+"'/^S/{print "+'">"$2"\\n"$3}'+"' "+mn.replace('.read.fq','.gfa ')+ '> '+mn.replace('.read.fq','.fa\n'))
+                rmn.writelines('flye --polish-target '+mn.replace('.read.fq','.fa') +' --out-dir . --'+platform.replace('corrected','corr').replace('nanopore','nano')+' '+new_path+i+'/'+mn+' --iterations 3'+'\n')
+os.chdir(workdir)
+os.mkdir('chr_by_chr')
+os.chdir(workdir+'/chr_by_chr')
+for i in mapping:
+    dirname=i.split('=')[0]
+    os.mkdir(workdir+'/chr_by_chr/'+dirname)
+    os.chdir(workdir+'/chr_by_chr/'+dirname)
+    os.system('sh '+new_path+dirname+'/assembly_*.sh')
+
+if '-v':
+	parser.parse_args(['-v'])

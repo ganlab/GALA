@@ -1,0 +1,39 @@
+#!/usr/bin/env python
+################################################################
+#  This file part of GALA Gap-free chromosome-scALe Assembler  #
+#  Auther: Mohamed awad                                        #
+#  Company: Xiangchao Gan lab (MPIPZ)                          #
+#  Released under the (MIT) license (see LICENSE file)         #
+################################################################
+import os
+a=['cca','comp','mad','newgenome','newgenome2','readsep','reformat','seprator']
+for i in a:
+    b=os.getcwd()
+    os.system('mkdir -p bin')
+    c=''.join(list(open(i)))
+    c=c.replace('path=os.getcwd()','path="'+b+'/bin"')
+    d=open('bin/'+i,'w')
+    d.writelines(c)
+    d.close()
+    os.system('cp -avr scr bin/' )
+    os.system('chmod +x bin/'+i )
+    print(i+'\tSuccsessfully installed')
+
+home='/home/'
+a=os.listdir(home)
+fil=home+a[0]+'/'+'.bashrc'
+fil2=home+a[0]+'/'+'.bash_profile'
+try:
+    b=open(fil,'rw')
+except:
+    b=open(fil,'w')
+try:
+    bb=open(fil2,'rw')
+except:
+    bb=open(fil2,'w')
+path=os.getcwd()
+c='export PATH="'+os.getcwd()+'/bin:$PATH"'
+os.system("echo '"+c+"\n' >> "+fil)
+os.system("echo '"+c+"\n' >> "+fil2)
+os.system('sh '+fil)
+os.system('sh '+fil2)
