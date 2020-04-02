@@ -1,7 +1,7 @@
 ﻿# Gap-Free Chromosome-scale Assembly (GALA) 
 **GALA**, is a Gap-free chromosome-scALe Assembler. GALA builds a multi-layer graph from different preliminary assemblies, long-reads and potential other sources of information, such as Hi-C assemblies. GALA firstly, identify the mis-assembled contigs and trim it. Then, identify multiple linkage groups in the genome, each representing a single chromosome, and describing chromosome structure with raw reads and assembled contigs from multiple de novo assembly tools. Finally assemble each linkage group by integrating results from multiple assembly tools and inferring from the raw reads. 
 
-**GALA** had [seven modules](#Description)  each can used separately 
+**GALA** has [seven modules](#Description)  each can used separately 
 	<p align="center">
 ![**GALA Pipline** ](fig/gala.jpg)
 	</p>
@@ -39,7 +39,7 @@ draft_3=path/to/draft_fasta_file
 draft_n=path/to/draftfasta file
 ```
 ## GALA Single Command Mode
-To run GFCA using one command user can use the following command
+To run GALA using one command user can use the following command
 > gala  `draft_names_paths.txt` `fa/fq` `reads_file` `platform`
 
 In single command mode GALA used [canu](https://github.com/marbl/canu) for Chromosome-by-Chromosome assembly.
