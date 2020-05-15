@@ -1,7 +1,11 @@
 ﻿# Gap-Free Long-read Assembler (GALA) 
 **GALA** is a **Ga**p-free **L**ong-read **A**ssembler. GALA builds a multi-layer graph from different preliminary assemblies, long-reads, and potentially other sources of information, such as Hi-C assemblies. During this process, it identifies mis-assembled contigs and trim them. The corrected data are then partitioned into multiple linkage groups, each representing a single chromosome. Each linkage group is assembled independently with existing assembly tools and a simplified version of overlap-graph-based merging algorithm is used to merge multiple contigs if necessary.
 
+<<<<<<< HEAD
 **GALA** has [three modules](#Description)  each can be used separately.
+=======
+**GALA** has [seven modules](#Description)  each can used separately 
+>>>>>>> 3082a3990dbcbb3f8fedf850cea571072643024d
 	<p align="center">
 ![**GALA Pipline** ](fig/gala.jpg)
 	</p>
@@ -16,6 +20,10 @@
 ## Installation
 GALA can be run directly from the gala folder
 >git clone [https://github.com/ganlab/gala.git](https://github.com/ganlab/gala.git)
+<<<<<<< HEAD
+=======
+
+>>>>>>> 3082a3990dbcbb3f8fedf850cea571072643024d
 >cd GALA
 
 **Or**
@@ -38,7 +46,11 @@ draft_3=path/to/draft_fasta_file
 draft_n=path/to/draftfasta file
 ```
 ## GALA Single Command Mode
+<<<<<<< HEAD
 To run GALA using one command user can use the following command:
+=======
+To run GALA using one command user can use the following command
+>>>>>>> 3082a3990dbcbb3f8fedf850cea571072643024d
 > gala  `draft_names_paths.txt` `fa/fq` `reads_file` `platform`
 
 In single command mode, GALA used [canu](https://github.com/marbl/canu) for Chromosome-by-Chromosome assembly.
@@ -254,4 +266,8 @@ optional arguments:
   -v, --version         show program's version number and exit
   ```
 ## Licence
+<<<<<<< HEAD
 GALA is distributed under MIT license. See the [LICENSE file](https://github.com/ganlab/GALA/blob/master/LICENSE) for details.
+=======
+GALA is distributed under MIT license. See the [LICENSE file](https://github.com/ganlab/GALA/blob/master/LICENSE) for details
+>>>>>>> 3082a3990dbcbb3f8fedf850cea571072643024d
