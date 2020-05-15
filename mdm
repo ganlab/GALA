@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ################################################################
-#  This file part of GALA Gap-free chromosome-scALe Assembler  #
+#  This file part of GALA Gap-free Long-reads Assembler        #
 #  Auther: Mohamed awad                                        #
 #  Company: Xiangchao Gan lab (MPIPZ)                          #
 #  Released under the (MIT) license (see LICENSE file)         #
@@ -13,7 +13,7 @@ absolute=os.path.join(path,scr)
 sys.path.insert(0, absolute)
 from cut_gathering import cut_gathering
 import argparse
-parser = argparse.ArgumentParser(prog="mdm",usage='%(prog)s -h  [options] -m path/to/mapping_files -n number of drafts',description='MDM Mis-Assembly Detector Module, part of GALA Gap-free chromosome-scALe Assembler')
+parser = argparse.ArgumentParser(prog="mdm",usage='%(prog)s -h  [options] -m path/to/mapping_files -n number of drafts',description='MDM Mis-Assembly Detector Module, part of GALA Gap-free Long-reads Assembler')
 
 parser.add_argument("mapping_files",nargs=1,type=str,help='mapping paf file \t [required]')
 parser.add_argument("drafts",nargs=1,type=int,help='Number of drafts\t[required]')

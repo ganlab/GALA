@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ################################################################
-#  This file part of GALA Gap-free chromosome-scALe Assembler  #
+#  This file part of GALA Gap-free Long-reads Assembler        #
 #  Auther: Mohamed awad                                        #
 #  Company: Xiangchao Gan lab (MPIPZ)                          #
 #  Released under the (MIT) license (see LICENSE file)         #
@@ -13,7 +13,7 @@ absolute=os.path.join(path,scr)
 sys.path.insert(0, absolute)
 from scaffolding import scaffolding
 import argparse
-parser = argparse.ArgumentParser(prog="ccm",usage='%(prog)s -h  [options] <path/to/mapping_files> <number of drafts>',description='CCM Contig Clustring Module, part of GALA Gap-free chromosome-scALe Assembler')
+parser = argparse.ArgumentParser(prog="ccm",usage='%(prog)s -h  [options] <path/to/mapping_files> <number of drafts>',description='CCM Contig Clustering Module, part of GALA Gap-free Long-reads Assembler')
 parser.add_argument("mapping_files",nargs=1,type=str,help='mapping paf file \t [required]')
 parser.add_argument("drafts",nargs=1,type=int,help='Number of drafts\t[required]')
 parser.add_argument("-b",nargs=1, type=int, default=[5000], metavar='Alignment block length\t [default 5000]',dest="block")

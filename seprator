@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ################################################################
-#  This file part of GALA Gap-free chromosome-scALe Assembler  #
+#  This file part of GALA Gap-free Long-reads Assembler        #
 #  Auther: Mohamed awad                                        #
 #  Company: Xiangchao Gan lab (MPIPZ)                          #
 #  Released under the (MIT) license (see LICENSE file)         #
@@ -13,7 +13,7 @@ absolute=os.path.join(path,scr)
 sys.path.insert(0, absolute)
 from bam_seprator import bam_seprator
 import argparse
-parser = argparse.ArgumentParser(prog="seprator",usage='%(prog)s -h  [options] <draft_names & paths> ',description='Separate each contigs correlated read names, part of GALA Gap-free chromosome-scALe Assembler')
+parser = argparse.ArgumentParser(prog="seprator",usage='%(prog)s -h  [options] <contig_names> <bam_file>',formatter_class=argparse.RawDescriptionHelpFormatter,description='Separate each contig correlated read names, part of GALA Gap-free Long-reads Assembler',epilog="Use the following command to produce contig_names file:""\n\t""samtools view -H <bam_file> |grep 'SQ'|cut -f 2|cut -d : -f 2 > contig_names")
 
 parser.add_argument("contig_names",nargs=1,type=str,help='contig_names \t [required]')
 parser.add_argument("bam_file",nargs=1,type=str,help='mapping bam file\t[required]')

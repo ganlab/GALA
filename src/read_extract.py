@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 ################################################################
-#  This file part of GALA Gap-free chromosome-scALe Assembler  #
+#  This file part of GALA Gap-free Long-reads Assembler        #
 #  Auther: Mohamed awad                                        #
 #  Company: Xiangchao Gan lab (MPIPZ)                          #
 #  Released under the (MIT) license (see LICENSE file)         #
@@ -35,7 +35,7 @@ def read_extract(read_file,names_file,file_type='fa'):
             line2 = a.readline()
             line3 = a.readline()
             line4 = a.readline()
-            key=line1.split(' ')[0].replace('@','')
+            key=line1.split(' ')[0].replace('@','').replace('\n','')
             try:
                 d[key]=line1+line2+line3+line4
             except:
