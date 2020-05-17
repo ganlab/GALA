@@ -16,7 +16,7 @@ def comp_generator(genomes,output=os.getcwd()):
     if output[-1]!='/':
         output=output+'/'
     b=open(output+'draft_comp.sh','w')
-    b.writelines('mkdir comparison\ncd comparison\n')
+    b.writelines('mkdir -p comparison\ncd comparison\n')
     b.writelines(''.join(z))
     for base in a:
         for ba in a:

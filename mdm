@@ -7,7 +7,7 @@
 ################################################################
 import os
 import sys
-scr='scr'
+scr='src'
 path=os.path.dirname(os.path.abspath(__file__))
 absolute=os.path.join(path,scr)
 sys.path.insert(0, absolute)

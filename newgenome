@@ -5,7 +5,7 @@
 #  Company: Xiangchao Gan lab (MPIPZ)                          #
 #  Released under the (MIT) license (see LICENSE file)         #
 ################################################################
-iimport os
+import os
 import sys
 scr='src'
 path=os.path.dirname(os.path.abspath(__file__))

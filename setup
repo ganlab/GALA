@@ -6,7 +6,7 @@
 #  Released under the (MIT) license (see LICENSE file)         #
 ################################################################
 import os
-a=['cca','comp','mad','newgenome','newgenome2','readsep','reformat','seprator']
+a=['ccm','comp','mdm','newgenome','gala','readsep','reformat','seprator']
 for i in a:
     b=os.getcwd()
     os.system('mkdir -p bin')
