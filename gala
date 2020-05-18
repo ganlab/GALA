@@ -47,10 +47,10 @@ contig=args.contig[0]
 assembler=args.assembler
 os.chdir(output)
 try:
-    os.mkdir('gala')
+    os.mkdir('gala_results')
 except:
     pass
-new_dir=os.path.join(output,'gala')
+new_dir=os.path.join(output,'gala_results')
 os.chdir(new_dir)
 workdir=os.getcwd()
 comp_generator(genomes=draft_names,output=workdir)
