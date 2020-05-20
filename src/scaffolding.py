@@ -160,27 +160,29 @@ def scaffolding(path,number_of_drafts,block=10000,percentage=70,shortage_contig=
             e=d[0]
             f=d[1]
             for ba in c[base].keys():
-                for bas in a[e][ba]:
-                    if f in bas:
-                        op=bas.split('\t')
-                        op0=op[0]
-                        op1=op[1]
-                        op2=op[2]
-                        op3=op[3]
-                        op4=op[4]
-                        op5=op[5]
-                        op6=op[6]
-                        op7=op[7]
-                        op8=op[8]
-                        op9=op[9]
-                        op10=op[10]
-                        op11=op[11]
-                        op12=op[12]
-                        op13=op[13].split('vs')
-                        newop=[op5,op6,op7,op8,op4,op0,op1,op2,op3,op9,op10,op11,op12,op13[1].replace('\n','')+'vs'+op13[0],'bass','from '+op7+' to '+op8]
-                        newop='\t'.join(newop)
-                        c[base][ba]+=[newop]
-
+                if ba in a[e].keys():
+                    for bas in a[e][ba]:
+                        if f in bas:
+                            op=bas.split('\t')
+                            op0=op[0]
+                            op1=op[1]
+                            op2=op[2]
+                            op3=op[3]
+                            op4=op[4]
+                            op5=op[5]
+                            op6=op[6]
+                            op7=op[7]
+                            op8=op[8]
+                            op9=op[9]
+                            op10=op[10]
+                            op11=op[11]
+                            op12=op[12]
+                            op13=op[13].split('vs')
+                            newop=[op5,op6,op7,op8,op4,op0,op1,op2,op3,op9,op10,op11,op12,op13[1].replace('\n','')+'vs'+op13[0],'bass','from '+op7+' to '+op8]
+                            newop='\t'.join(newop)
+                            c[base][ba]+=[newop]
+                else:
+                    pass
         d={}
         for base in b.keys():
             d[base]=[]

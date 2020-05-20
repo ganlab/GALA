@@ -42,10 +42,15 @@ block=args.block[0]
 percent=args.percent[0]
 qty=args.qty[0]
 output=args.output[0]
+output=os.path.abspath(output)
 name=args.name[0]
 contig=args.contig[0]
 assembler=args.assembler
-os.chdir(output)
+try:
+    os.chdir(output)
+except:
+    os.mkdir(output)
+    os.chdir(output)
 try:
     os.mkdir('gala_results')
 except:

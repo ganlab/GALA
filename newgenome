@@ -17,7 +17,7 @@ parser = argparse.ArgumentParser(prog="newgenome",usage='%(prog)s -h  [options] 
 
 parser.add_argument("draft",nargs=1,type=str,help='Draft names and paths\t[required]')
 parser.add_argument("cut_files",nargs=1,type=str,help='path_to_cut_files" \t [required]')
-parser.add_argument("-f",nargs=1, type=str, default=['new_genome'], metavar='Output files name\t[default new_genome]',dest="name")
+parser.add_argument("-f",nargs=1, type=str, default=['gathering'], metavar='Output files name\t[default gathering]',dest="name")
 parser.add_argument("-o",nargs=1, type=str, default=[os.getcwd()], metavar='output files path\t[default current directory]',dest="output")
 parser.add_argument('-v','--version', action='version', version='%(prog)s 1.0.0')
 args = parser.parse_args()
