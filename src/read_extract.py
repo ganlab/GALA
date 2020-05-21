@@ -19,16 +19,15 @@ def read_extract(read_file,names_file,file_type='fa'):
     for base in c:
         d[base.replace('\n','')]=''
     if file_type=='fa' or file_type=='fasta':
-        while True:
-            line1 = a.readline()
-            line2 = a.readline()
-            key=line1.split(' ')[0].replace('>','')
+        a=list(a)
+        a=''.join(a)
+        a=a.split('>')[1:]
+        for bo in a:
+            key=bo.split('\n')[0].split(' ')[0].replace('>','')
             try:
-                d[key]=line1.replace('>','@')+line2+'+\n'+len(line2)*'B'+'\n'
+                d[key]=bo.split('\n')[0].replace('>','@')+'\n'+''.join(bo.split('\n')[1:])+'+\n'+len(''.join(bo.split('\n')[1:]))*'B'+'\n'
             except:
                 continue
-            if line1=='':
-                break
     elif file_type=='fq'or file_type=='fastq':
         while True:
             line1 = a.readline()
