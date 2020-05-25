@@ -25,7 +25,7 @@ def read_extract(read_file,names_file,file_type='fa'):
         for bo in a:
             key=bo.split('\n')[0].split(' ')[0].replace('>','')
             try:
-                d[key]=bo.split('\n')[0].replace('>','@')+'\n'+''.join(bo.split('\n')[1:])+'+\n'+len(''.join(bo.split('\n')[1:]))*'B'+'\n'
+                d[key]='@'+bo.split('\n')[0]+'\n'+''.join(bo.split('\n')[1:])+'\n+\n'+len(''.join(bo.split('\n')[1:]))*'B'+'\n'
             except:
                 continue
     elif file_type=='fq'or file_type=='fastq':
