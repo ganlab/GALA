@@ -28,7 +28,7 @@ parser.add_argument("-b",nargs=1, type=int, default=[5000], metavar='Alignment b
 parser.add_argument("-p",nargs=1, type=int, default=[70], metavar='Alignment identity percentage\t [default 70%]',dest="percent")
 parser.add_argument("-l",nargs=1, type=int, default=[1], metavar='lowest number of misassemblies indecator\t [default 1]',dest="lowest")
 parser.add_argument("-c",nargs=1, type=int, default=[5000], metavar='Shortest contig length\t [default 5000]',dest="contig")
-parser.add_argument("-k",nargs=1, type=int, default=[175], metavar='Mis-assembly block\t [default 175]\n\t\tIt is better to extend the misassembly block in case of\n\t\tunpolished assemblies or expected mis-assemblies in highly repetative regions',dest="cutblock")
+parser.add_argument("-k",nargs=1, type=int, default=[175], metavar='Mis-assembly block\t [default 175]\n\t\t\tIt is better to extend the misassembly block in case of\n\t\t\tunpolished assemblies or expected mis-assemblies\n\t\t\tin highly repetative regions (5000-10000)',dest="cutblock")
 parser.add_argument("-q",nargs=1, type=int, default=[20], metavar='Mapping quality\t [default 20]',dest="qty")
 parser.add_argument("-f",nargs=1, type=str, default=['gathering'], metavar='Output files name\t[default gathering]',dest="name")
 parser.add_argument("-t",nargs=1, type=str, default=['False'], metavar='cut on a threshold passed by -u\t[default False]',dest="threshold")
