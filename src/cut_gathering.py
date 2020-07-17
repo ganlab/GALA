@@ -8,7 +8,7 @@
 
 from cut_detector import cut_detector
 import os
-def cut_gathering(path,number_of_drafts,block=5000,percentage=70,shortage_contig=5000,quality=20,out_file=False,out_name='gathering',out_path=os.getcwd(),lowest_cut=1):
+def cut_gathering(path,number_of_drafts,block=5000,percentage=70,shortage_contig=5000,quality=20,cut_block=175,out_file=False,out_name='gathering',out_path=os.getcwd(),lowest_cut=1,threshold=False,threshold_value=3):
     a=cut_detector(path,number_of_drafts,block=block,percentage=percentage,shortage_contig=shortage_contig,quality=quality)
     b=a[1]
     k=a[0]

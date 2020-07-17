@@ -205,14 +205,18 @@ def scaffolding(path,number_of_drafts,block=10000,percentage=70,shortage_contig=
                 else:
                     f[base]+=[d[base][n].split('\t')[0]]
                     e[base]+=[d[base][n]]
-                    if (d[base][n].split('\t')[-3].replace('\n','')==d[base][n-1].split('\t')[-3].replace('\n','')) and (d[base][n].split('\t')[5]==d[base][n-1].split('\t')[5]):
-                        f[base]+=[d[base][n-1].split('\t')[0]]
-                        e[base]+=[d[base][n-1]]
-                    elif (d[base][n].split('\t')[-3].replace('\n','')==d[base][n+1].split('\t')[-3].replace('\n','')) and (d[base][n].split('\t')[5]==d[base][n+1].split('\t')[5]):
-                        f[base]+=[d[base][n+1].split('\t')[0]]
-                        e[base]+=[d[base][n+1]]
-                    n=n+1
-        print(key+str(len(f)))
+                    try:
+                        
+                        if (d[base][n].split('\t')[-3].replace('\n','')==d[base][n-1].split('\t')[-3].replace('\n','')) and (d[base][n].split('\t')[5]==d[base][n-1].split('\t')[5]):
+                            f[base]+=[d[base][n-1].split('\t')[0]]
+                            e[base]+=[d[base][n-1]]
+                        elif (d[base][n].split('\t')[-3].replace('\n','')==d[base][n+1].split('\t')[-3].replace('\n','')) and (d[base][n].split('\t')[5]==d[base][n+1].split('\t')[5]):
+                            f[base]+=[d[base][n+1].split('\t')[0]]
+                            e[base]+=[d[base][n+1]]
+                        n=n+1
+                    except:
+                        n=n+1
+        print(key+'\t'+str(len(f)))
         z[key]=f
         single={}
         scaffolds={}
@@ -249,9 +253,13 @@ def scaffolding(path,number_of_drafts,block=10000,percentage=70,shortage_contig=
     for ien in single.keys():
         qq=0
         for bot in single[ien]:
-            zom=int(a[ien][bot][0].split('\t')[1])
-            single[ien][qq]=single[ien][qq]+'\t'+str(zom)
-            qq=qq+1
+            try:
+                zom=int(a[ien][bot][0].split('\t')[1])
+                single[ien][qq]=single[ien][qq]+'\t'+str(zom)
+                qq=qq+1
+            except:
+                single[ien][qq]=single[ien][qq]+'\tUnknown'
+                qq=qq+1 
     if out_file==True:
         os.system('mkdir -p '+output+'/'+output_name)
         output=output+'/'+output_name
