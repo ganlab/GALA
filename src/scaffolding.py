@@ -247,7 +247,10 @@ def scaffolding(path,number_of_drafts,block=10000,percentage=70,shortage_contig=
     for ien in scaffolds_list.keys():
         for bot in scaffolds_list[ien].keys():
             for bac in scaffolds_list[ien][bot]:
-                zom=zom+int(a[ien][bac][0].split('\t')[1])
+                try:
+                    zom=zom+int(a[ien][bac][0].split('\t')[1])
+                except:
+                    zom=zom+0
             scaffolds_list[ien][bot].append(str(zom))
             zom=0
     for ien in single.keys():

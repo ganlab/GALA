@@ -33,9 +33,9 @@ Use different software to construct preliminary assemblies from long reads, e.g.
 * The user needs to prepare `draft_names_paths.txt` for preliminary assemblies.
 **Here is an example:**
 ```
-draft_1=path/to/draft_fasta_file
-draft_2=path/to/draft_fasta_file
-draft_3=path/to/draft_fasta_file
+draft_01=path/to/draft_fasta_file
+draft_02=path/to/draft_fasta_file
+draft_03=path/to/draft_fasta_file
 draft_n=path/to/draftfasta file
 ```
 ## GALA Single Command Mode
