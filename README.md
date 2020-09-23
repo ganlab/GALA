@@ -7,6 +7,12 @@
 ![**GALA Pipline** ](fig/gala.jpg)
 	</p>
 
+## GALA performance with a human genome
+GALA assembled a human genome using (HiFi) reads. GALA used canu draft for CHM13 and the current human reference genome GRCh38.p13 as input of GALA. In this way GALA essentially created a reference-guided de novo assembly. GALA assembly comprised of 37 continuous contigs, including 8 telomer-to-telomer gap-free pseudomolecular sequences, 4 near complete chromosomes each with a small telomeric fragment unanchored, 3 with only gapped centromeric regions, and the long arm of acrocentric chromosomes. [Human Genome](https://doi.org/10.5281/zenodo.4045985)
+	<p align="center">
+![**Human Genome** ](fig/Human_Genome.png)
+	</p>
+
 ## Dependency
 1. [Minimap2](https://github.com/lh3/minimap2)
 2. [bwa](https://github.com/lh3/bwa)
@@ -256,4 +262,5 @@ optional arguments:
   ```
 ## Licence
 GALA is distributed under MIT license. See the [LICENSE file](https://github.com/ganlab/GALA/blob/master/LICENSE) for details.
+
 
