@@ -1,0 +1,24 @@
+grep 'NC_000001.' reformated_ref.txt|grep 'canu20'|cut -f 6|uniq > chrom1.scaff
+grep 'NC_000002.' reformated_ref.txt|grep 'canu20'|cut -f 6|uniq > chrom2.scaff
+grep 'NC_000003.' reformated_ref.txt|grep 'canu20'|cut -f 6|uniq > chrom3.scaff
+grep 'NC_000004.' reformated_ref.txt|grep 'canu20'|cut -f 6|uniq > chrom4.scaff
+grep 'NC_000005.' reformated_ref.txt|grep 'canu20'|cut -f 6|uniq > chrom5.scaff
+grep 'NC_000006.' reformated_ref.txt|grep 'canu20'|cut -f 6|uniq > chrom6.scaff
+grep 'NC_000007.' reformated_ref.txt|grep 'canu20'|cut -f 6|uniq > chrom7.scaff
+grep 'NC_000008.' reformated_ref.txt|grep 'canu20'|cut -f 6|uniq > chrom8.scaff
+grep 'NC_000009.' reformated_ref.txt|grep 'canu20'|cut -f 6|uniq > chrom9.scaff
+grep 'NC_000010.' reformated_ref.txt|grep 'canu20'|cut -f 6|uniq > chrom10.scaff
+grep 'NC_000011.' reformated_ref.txt|grep 'canu20'|cut -f 6|uniq > chrom11.scaff
+grep 'NC_000012.' reformated_ref.txt|grep 'canu20'|cut -f 6|uniq > chrom12.scaff
+grep 'NC_000013.' reformated_ref.txt|grep 'canu20'|cut -f 6|uniq > chrom13.scaff
+grep 'NC_000014.' reformated_ref.txt|grep 'canu20'|cut -f 6|uniq > chrom14.scaff
+grep 'NC_000015.' reformated_ref.txt|grep 'canu20'|cut -f 6|uniq > chrom15.scaff
+grep 'NC_000016.' reformated_ref.txt|grep 'canu20'|cut -f 6|uniq > chrom16.scaff
+grep 'NC_000017.' reformated_ref.txt|grep 'canu20'|cut -f 6|uniq > chrom17.scaff
+grep 'NC_000018.' reformated_ref.txt|grep 'canu20'|cut -f 6|uniq > chrom18.scaff
+grep 'NC_000018.' reformated_ref.txt|grep 'canu20'|cut -f 6|uniq > chrom19.scaff
+grep 'NC_000020.' reformated_ref.txt|grep 'canu20'|cut -f 6|uniq > chrom20.scaff
+grep 'NC_000021.' reformated_ref.txt|grep 'canu20'|cut -f 6|uniq > chrom21.scaff
+grep 'NC_000022.' reformated_ref.txt|grep 'canu20'|cut -f 6|uniq > chrom22.scaff
+grep 'NC_000023.' reformated_ref.txt|grep 'canu20'|cut -f 6|uniq > chromx.scaff
+

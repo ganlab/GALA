@@ -1,0 +1,3 @@
+canu10=../canu_draft/chm13_10k_hicanu_hifi.fasta.gz
+canu20=../canu_draft/chm13_10k_hicanu_hifi.fasta.gz
+ref=../ref/GRCh38.p13.genome.fa
