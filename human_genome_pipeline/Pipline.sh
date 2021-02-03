@@ -1,6 +1,6 @@
 		########################################################################
 		#                                                                      #
-		# 		Gala reference guide Human genome assembly             #
+		# 		Gala Human genome reference guide assembly             #
 		#       		Mohamed Awad & Xiangchao Gan	               #
 		#       		(10.1101/2020.05.15.097428)  		       #	
 		#								       #
