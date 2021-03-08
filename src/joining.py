@@ -24,10 +24,11 @@ def reformated(path,number_of_drafts,block=5000,percentage=70,shortage_contig=50
             for base in b:
                 e=base.split('\t')
                 f=e[5]
+                r=e[-1]
                 n=0
                 m=0
                 while m<len(b):
-                    if f in b[m]:
+                    if f in b[m] and r in b[m]:
                         n=n+1
                         m=m+1
                     else:
@@ -40,9 +41,9 @@ def reformated(path,number_of_drafts,block=5000,percentage=70,shortage_contig=50
 
             g={}
             for base in b:
-                g[base.split('\t')[5]]=[]
+                g[base.split('\t')[5]+base.split('\t')[5].replace('\n','')]=[]
             for base in b:
-                g[base.split('\t')[5]]+=[base]
+                g[base.split('\t')[5]+base.split('\t')[5].replace('\n','')]+=[base]
 
             for base in g.keys():
                 m=g[base]

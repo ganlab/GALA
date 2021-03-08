@@ -40,9 +40,9 @@ cutblock=args.cutblock[0]
 threshold_value=args.threshold_value[0]
 threshold=args.threshold[0]
 if threshold in ('False','FALSE','F','f'):
-    theshold=False
+    threshold=False
 elif threshold in ('True','TRUE','T','t'):
-    theshold=True
+    threshold=True
 cut_gathering(path=paf,number_of_drafts=drafts,block=block,percentage=percent,shortage_contig=contig,quality=qty,out_file=True,out_name=name,out_path=output,cut_block=cutblock,threshold=threshold,threshold_value=threshold_value)
 if '-v':
 	parser.parse_args(['-v'])
