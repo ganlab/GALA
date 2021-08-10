@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 ################################################################
 #  This file part of GALA Gap-free Long-reads Assembler        #
 #  Auther: Mohamed awad                                        #
@@ -15,23 +15,23 @@ def cut_gathering(path,number_of_drafts,block=5000,percentage=70,shortage_contig
     bk=a[2]
     w={}
     ww={}
-    for draft in b.keys():
+    for draft in list(b.keys()):
         c=b[draft]
         l=k[draft]
         cl=bk[draft]
         v={}
         vv={}
-        for key in c.keys():
+        for key in list(c.keys()):
             d=c[key]
             m=l[key]
             dm=cl[key]
             h=[]
             for base in d:
                 if 'and' in base:
-                    h.append(int(base.split('\t')[-2]))
-                    h.append(int(base.split('\t')[-1].replace('\n','')))
+                    h.append(int(float(base.split('\t')[-2])))
+                    h.append(int(float(base.split('\t')[-1].replace('\n',''))))
                 else:
-                    h.append(int(base.split('\t')[-1].replace('\n','')))
+                    h.append(int(float(base.split('\t')[-1].replace('\n',''))))
             h.sort()
             i=[]
             n=0
@@ -64,15 +64,15 @@ def cut_gathering(path,number_of_drafts,block=5000,percentage=70,shortage_contig
             for base in i:
                 j[sum(base)/len(base)]=[len(base),base[0],base[-1]]
             jj={}
-            for base in j.keys():
+            for base in list(j.keys()):
                 #o=j[base][0]
                 p=j[base][1]
                 q=j[base][2]
                 u=[]
                 j[base].append(0)
                 for ba in m:
-                    r=int(ba.split('\t')[2])
-                    s=int(ba.split('\t')[3])
+                    r=int(float(ba.split('\t')[2]))
+                    s=int(float(ba.split('\t')[3]))
                     if (r<=p-50 and s>=q+50) or (r>=q-50 and s<=p+50):
                         j[base][-1]+=1
                         u.append(ba.split('\t')[13])
@@ -80,14 +80,14 @@ def cut_gathering(path,number_of_drafts,block=5000,percentage=70,shortage_contig
                 j[base].append(0)
                 for ba in dm:
                     if 'from' in ba:
-                        r=int(ba.split('\t')[-1].replace('from','').replace('to','').replace('\n','').split()[0])
-                        s=int(ba.split('\t')[-1].replace('from','').replace('to','').replace('\n','').split()[1])
+                        r=int(float(ba.split('\t')[-1].replace('from','').replace('to','').replace('\n','').split()[0]))
+                        s=int(float(ba.split('\t')[-1].replace('from','').replace('to','').replace('\n','').split()[1]))
                         if (r>=p-20 and r<=p+20) or (r>=q-20 and r<=p+20) or (s>=p-20 and s<=p+20) or (s>=q-20 and s<=p+20):
                              j[base][-1]+=1
                 j[base][-1]=j[base][-1]
                 j[base].append(len(set(u))-j[base][0])
                 if threshold == True:
-                    if int(j[base][0])>=int(threshold_value):
+                    if int(float(j[base][0]))>=int(float(threshold_value)):
                         jj[base]=j[base]
                     elif j[base][0]>=float(number_of_drafts)/2 and j[base][3]<=j[base][0]:#1_10_2019
                         jj[base]=j[base]
@@ -120,16 +120,16 @@ def cut_gathering(path,number_of_drafts,block=5000,percentage=70,shortage_contig
     if out_file==True:
         os.system('mkdir -p '+out_path+'/'+out_name)
         out_path=out_path+'/'+out_name
-        for draft in w.keys():
+        for draft in list(w.keys()):
             t=open(out_path+'/'+out_name+'_'+draft+'.txt','w')
             tt=open(out_path+'/'+out_name+'_'+draft+'_cuts.txt','w')
             z=w[draft]
             zt=ww[draft]
-            for key in z.keys():
+            for key in list(z.keys()):
                 zz=z[key]
                 for base in sorted(list(zz.keys())):
                     t.writelines(key+'\t'+str(base)+'\t'+str(zz[base][0])+'\t'+str(zz[base][1])+'\t'+str(zz[base][2])+'\t'+str(zz[base][3])+'\t'+str(zz[base][4])+'\n')
-            for key in zt.keys():
+            for key in list(zt.keys()):
                 zz=zt[key]
                 for base in sorted(list(zz.keys())):
                     tt.writelines(key+'\t'+str(base)+'\t'+str(zz[base][0])+'\t'+str(zz[base][3])+'\t'+str(zz[base][4])+'\n')

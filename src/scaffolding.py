@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 ################################################################
 #  This file part of GALA Gap-free Long-reads Assembler        #
 #  Auther: Mohamed awad                                        #
@@ -14,7 +14,7 @@ def scaff(scaffolds):
     i=1
     k=0
     l={}
-    for base in scaffolds.keys():
+    for base in list(scaffolds.keys()):
         sca=sorted(scaffolds[base], key=lambda i:len(i), reverse=True)
         for ba in sca:
             k=0
@@ -27,7 +27,7 @@ def scaff(scaffolds):
                     h['scaff_'+str(i)]=[ba]
             else:
                 for bas in ba:
-                    for basee in h.keys():
+                    for basee in list(h.keys()):
                         if bas in h[basee]:
                             h[basee]=h[basee]+ba
                             h[basee].sort()
@@ -56,17 +56,17 @@ def scaffolding(path,number_of_drafts,block=10000,percentage=70,shortage_contig=
     #ori_con=shortage_contig
     #ori_qual=quality
     h={}
-    for base in a.keys():
+    for base in list(a.keys()):
         m={}
-        for ba in a[base].keys():
+        for ba in list(a[base].keys()):
             if len(a[base][ba])==0:
                 m[ba]=[]
         h[base]=m
     o=file_filter(path,number_of_drafts,block=1,percentage=0,shortage_contig=0,quality=-1)
-    for base in h.keys():
-        for ba in h[base].keys():
+    for base in list(h.keys()):
+        for ba in list(h[base].keys()):
             try:
-               h[base][ba]=sorted(o[base][ba],key=lambda i:(int(i.split('\t')[9]),int(i.split('\t')[6]),int(i.split('\t')[11]),int(i.split('\t')[12])),reverse=True)
+               h[base][ba]=sorted(o[base][ba],key=lambda i:(int(float(i.split('\t')[9])),int(float(i.split('\t')[6])),int(float(i.split('\t')[11])),int(float(i.split('\t')[12]))),reverse=True)
             except:
                 continue
     '''
@@ -80,8 +80,8 @@ def scaffolding(path,number_of_drafts,block=10000,percentage=70,shortage_contig=
                 else:
                     num=False
     '''
-    for base in h.keys():
-        for ba in h[base].keys():
+    for base in list(h.keys()):
+        for ba in list(h[base].keys()):
             try:
                 a[base][ba]=[h[base][ba][0]]
                 op=h[base][ba][0].split('\t')
@@ -132,9 +132,9 @@ def scaffolding(path,number_of_drafts,block=10000,percentage=70,shortage_contig=
                 a[op13[0]][op5]+=[newop]
     '''
     z={}
-    for key in a.keys():
+    for key in list(a.keys()):
         b=a[key]
-        for base in b.keys():
+        for base in list(b.keys()):
             n=0
             while n<len(b[base]):
                 if len(b[base][n].split('\t'))==14:
@@ -143,24 +143,24 @@ def scaffolding(path,number_of_drafts,block=10000,percentage=70,shortage_contig=
                 else:
                     n=n+1
         c={}
-        for base in b.keys():
+        for base in list(b.keys()):
             for ba in b[base]:
-                if ba.split('\t')[-3] not in c.keys():
+                if ba.split('\t')[-3] not in list(c.keys()):
                     c[ba.split('\t')[-3].replace('\n','')]={}
-        for base in b.keys():
+        for base in list(b.keys()):
             for ba in b[base]:
                 d=ba.split('\t')[-3].replace('\n','')
                 e=ba.split('\t')[5]
-                if e in c[d].keys():
+                if e in list(c[d].keys()):
                     c[d][e]+=[ba]
                 else:
                     c[d][e]=[ba]
-        for base in c.keys():
+        for base in list(c.keys()):
             d=base.split('vs')
             e=d[0]
             f=d[1]
-            for ba in c[base].keys():
-                if ba in a[e].keys():
+            for ba in list(c[base].keys()):
+                if ba in list(a[e].keys()):
                     for bas in a[e][ba]:
                         if f in bas:
                             op=bas.split('\t')
@@ -184,20 +184,20 @@ def scaffolding(path,number_of_drafts,block=10000,percentage=70,shortage_contig=
                 else:
                     pass
         d={}
-        for base in b.keys():
+        for base in list(b.keys()):
             d[base]=[]
 
-        for base in b.keys():
+        for base in list(b.keys()):
             for ba in b[base]:
                 e=ba.split('\t')[-3].replace('\n','')
                 f=ba.split('\t')[5]
                 d[base]+=c[e][f]
         e={}
         f={}
-        for base in d.keys():
+        for base in list(d.keys()):
             e[base]=[]
             f[base]=[]
-        for base in d.keys():
+        for base in list(d.keys()):
             n=0
             while n<len(d[base]):
                 if d[base][n].split('\t')[0] in f[base]:
@@ -220,7 +220,7 @@ def scaffolding(path,number_of_drafts,block=10000,percentage=70,shortage_contig=
         z[key]=f
         single={}
         scaffolds={}
-        for key in z.keys():
+        for key in list(z.keys()):
             g=z[key]
             s=[]
             sc=[]
@@ -237,27 +237,27 @@ def scaffolding(path,number_of_drafts,block=10000,percentage=70,shortage_contig=
             single[key]=s
             scaffolds[key]=sa
     scaffolds_list=scaff(scaffolds)
-    for ay in scaffolds_list.keys():
-        for ya in scaffolds_list[ay].keys():
+    for ay in list(scaffolds_list.keys()):
+        for ya in list(scaffolds_list[ay].keys()):
             if len(scaffolds_list[ay][ya])==1:
                 single[ay]+=[scaffolds_list[ay][ya][0]]
                 del scaffolds_list[ay][ya]
 
     zom=0
-    for ien in scaffolds_list.keys():
-        for bot in scaffolds_list[ien].keys():
+    for ien in list(scaffolds_list.keys()):
+        for bot in list(scaffolds_list[ien].keys()):
             for bac in scaffolds_list[ien][bot]:
                 try:
-                    zom=zom+int(a[ien][bac][0].split('\t')[1])
+                    zom=zom+int(float(a[ien][bac][0].split('\t')[1]))
                 except:
                     zom=zom+0
             scaffolds_list[ien][bot].append(str(zom))
             zom=0
-    for ien in single.keys():
+    for ien in list(single.keys()):
         qq=0
         for bot in single[ien]:
             try:
-                zom=int(a[ien][bot][0].split('\t')[1])
+                zom=int(float(a[ien][bot][0].split('\t')[1]))
                 single[ien][qq]=single[ien][qq]+'\t'+str(zom)
                 qq=qq+1
             except:
@@ -266,12 +266,12 @@ def scaffolding(path,number_of_drafts,block=10000,percentage=70,shortage_contig=
     if out_file==True:
         os.system('mkdir -p '+output+'/'+output_name)
         output=output+'/'+output_name
-        for bo in scaffolds_list.keys():
+        for bo in list(scaffolds_list.keys()):
             z=open(output+'/'+output_name+'_'+bo+'.scaff','w')
             r=scaffolds_list[bo]
             rr=single[bo]
             z.writelines('Scaffolds List:\n\n')
-            for bn in sorted(r.keys(),key=lambda i:int(i.replace('scaff_',''))):
+            for bn in sorted(list(r.keys()),key=lambda i:int(float(i.replace('scaff_','')))):
                 z.writelines(bn+'\t')
                 for i in r[bn]:
                     z.writelines(i+'\t')

@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 ################################################################
 #  This file part of GALA Gap-free Long-reads Assembler        #
 #  Auther: Mohamed awad                                        #
@@ -20,9 +20,9 @@ def new_genome(cut_file,old_genome,out_path=os.getcwd(),name='new_genome'):
         b[base.split()[0]]=[]
     for base in a:
         b[base.split()[0]]+=[base.split()[1]]
-    for base in b.keys():
+    for base in list(b.keys()):
         b[base].insert(0,0)
-    for base in b.keys():
+    for base in list(b.keys()):
         b[base].append('end')
     c=list(open(old_genome))
     c=''.join(c)
@@ -33,25 +33,25 @@ def new_genome(cut_file,old_genome,out_path=os.getcwd(),name='new_genome'):
         e=base.split('\n')
         d[e[0].split()[0]]=''.join(e[1:])
     e,f={},{}
-    for base in d.keys():
-        if base in b.keys():
+    for base in list(d.keys()):
+        if base in list(b.keys()):
             e[base]=d[base]
         else:
             f[base]=d[base]
     i={}
-    for base in b.keys():
+    for base in list(b.keys()):
         g=b[base]
         h=1
         j=0
         while j <len(g)-1:
             if g[j+1]!='end':
-                i[base+'_'+str(h)+'_'+'awad']=e[base][int(g[j]):int(g[j+1])]
+                i[base+'_'+str(h)+'_'+'awad']=e[base][int(float(g[j])):int(float(g[j+1]))]
             else:
-                i[base+'_'+str(h)+'_'+'awad']=e[base][int(g[j]):]
+                i[base+'_'+str(h)+'_'+'awad']=e[base][int(float(g[j])):]
             j=j+1
             h=h+1
     g=open(out_path+'/'+name+'.fa','w')
-    for base in i.keys():
+    for base in list(i.keys()):
         g.writelines('>'+base+'\t'+str(len(i[base]))+'\n')
         h=0
         while h<len(i[base]):
@@ -59,7 +59,7 @@ def new_genome(cut_file,old_genome,out_path=os.getcwd(),name='new_genome'):
             j=h
             h=h+80
 
-    for base in f.keys():
+    for base in list(f.keys()):
         g.writelines('>'+base+'_awad'+'\t'+str(len(f[base]))+'\n')
         h=0
         while h<len(f[base]):

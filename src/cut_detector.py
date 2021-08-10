@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 ################################################################
 #  This file part of GALA Gap-free Long-reads Assembler        #
 #  Auther: Mohamed awad                                        #
@@ -47,29 +47,29 @@ def stat2(sq,eq,st,et,diff_sq,diff_eq,diff_st,diff_et,lq):
         else:
             return ('cut', str(sq)+' or '+str(st) +' and '+str(eq)+' or '+str(et),str(sq),str(eq))
 
-path='/netscratch/dep_tsiantis/grp_gan/awad/todo/cor.reads/drafts_comp'
+#path='/netscratch/dep_tsiantis/grp_gan/awad/todo/cor.reads/drafts_comp'
 def cut_detector(path,number_of_drafts,block=10000,percentage=70,shortage_contig=50000,quality=20,out_file=False,only_cut=False,output=os.getcwd()):
     a=reformated(path,number_of_drafts,block=block,percentage=percentage,shortage_contig=shortage_contig,quality=quality)
     l={}
     o={}
-    for draft in a.keys():
+    for draft in list(a.keys()):
         b=a[draft]
         g={}
         w={}
-        for key in b.keys():
+        for key in list(b.keys()):
             c=b[key]
             e=[]
             h=[]
             u=[]
             for base in c:
                 d=base.split('\t')
-                sq=int(d[2])
-                eq=int(d[3])
+                sq=int(float(d[2]))
+                eq=int(float(d[3]))
                 s=d[4]
-                st=int(d[7])
-                et=int(d[8])
-                lq=int(d[1])
-                lt=int(d[6])
+                st=int(float(d[7]))
+                et=int(float(d[8]))
+                lq=int(float(d[1]))
+                lt=int(float(d[6]))
                 if lq>1000000:
                     diff_sq=12000
                     diff_eq=lq-12000
@@ -107,14 +107,14 @@ def cut_detector(path,number_of_drafts,block=10000,percentage=70,shortage_contig
         o[draft]=w
         if out_file==True:
             f=open(output+'/cut_detector_'+draft+'.txt','w')
-            for key in b.keys():
+            for key in list(b.keys()):
                 c=b[key]
                 for base in c:
                     f.writelines(base)
             f.close()
         if only_cut==True:
             f=open(output+'/cut_detector_only_'+draft+'.txt','w')
-            for key in b.keys():
+            for key in list(b.keys()):
                 c=b[key]
                 for base in c:
                     if 'cut' in base:

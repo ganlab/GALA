@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 ################################################################
 #  This file part of GALA Gap-free Long-reads Assembler        #
 #  Auther: Mohamed awad                                        #
@@ -50,36 +50,36 @@ def file_filter(path,number_of_drafts,output=os.getcwd(),block=10000,percentage=
         b=d[bo]
         for base in b:
             for ba in base[1]:
-                if ba.split('\t')[0] in e.keys():
+                if ba.split('\t')[0] in list(e.keys()):
                     e[ba.split('\t')[0]]+=['\t'.join(ba.split('\t')[:12])+'\t'+str(int(float(ba.split('\t')[9])/float(ba.split('\t')[10])*100))+'\t'+base[0]+'\n']
                 else:
                     e[ba.split('\t')[0]]=['\t'.join(ba.split('\t')[:12])+'\t'+str(int(float(ba.split('\t')[9])/float(ba.split('\t')[10])*100))+'\t'+base[0]+'\n']
-        for base in e.keys():
-            e[base]=sorted(e[base],key=lambda i:(int(i.split('\t')[2]),i[-1]))
+        for base in list(e.keys()):
+            e[base]=sorted(e[base],key=lambda i:(int(float(i.split('\t')[2])),i[-1]))
         ee[bo]=e
         e={}
     ff=ee.copy()
-    for bo in ff.keys():
+    for bo in list(ff.keys()):
         f=ff[bo]
-        for base in f.keys():
+        for base in list(f.keys()):
             n=0
             while n<len(f[base]):
-                if int(f[base][n].split('\t')[10])<block:
+                if int(float(f[base][n].split('\t')[10]))<block:
                     del f[base][n]
-                elif int(f[base][n].split('\t')[11])<quality:
+                elif int(float(f[base][n].split('\t')[11]))<quality:
                     del f[base][n]
-                elif int(f[base][n].split('\t')[12])<percentage:
+                elif int(float(f[base][n].split('\t')[12]))<percentage:
                     del f[base][n]
-                elif int(f[base][n].split('\t')[1])<shortage_contig or int(f[base][n].split('\t')[6])<shortage_contig:
+                elif int(float(f[base][n].split('\t')[1]))<shortage_contig or int(float(f[base][n].split('\t')[6]))<shortage_contig:
                     del f[base][n]
                 else:
                     n=n+1
         ff[bo]=f
     r={}
     rr={}
-    for bo in ff.keys():
+    for bo in list(ff.keys()):
         f=ff[bo]
-        for base in f.keys():
+        for base in list(f.keys()):
             g=f[base][:]
             m=0
             gg=[]
@@ -98,10 +98,10 @@ def file_filter(path,number_of_drafts,output=os.getcwd(),block=10000,percentage=
         rr[bo]=r
         r={}
     if file_output==True:
-        for bo in rr.keys():
+        for bo in list(rr.keys()):
             z=open(output+bo+'_new.txt','w')
             r=rr[bo]
-            for base in r.keys():
+            for base in list(r.keys()):
                 for ba in r[base]:
                     z.writelines(ba)
             z.close()

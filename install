@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 ################################################################
 #  This file part of GALA Gap-free Long-reads Assembler        #
 #  Auther: Mohamed awad                                        #
@@ -6,14 +6,27 @@
 #  Released under the (MIT) license (see LICENSE file)         #
 ################################################################
 import os
+import argparse
+parser = argparse.ArgumentParser(prog="install",usage='%(prog)s -h  [options] description=Add Gala modules to path')
+parser.add_argument("--prefix",nargs=1, type=str, default=['/usr/bin/'], metavar='The installation path\t [default /usr/bin/]',dest="path")
+parser.add_argument("-y",nargs=1, type=str, default=['/usr/bin/env'], metavar='The path to Python\t [default /usr/bin/env]',dest="py")
+parser.add_argument("-x",nargs=1, type=int, default=[3], metavar='Python Version\t [default 3]',dest="version")
+args = parser.parse_args()
+path=args.path[0]
+py=args.py[0]
+version=args.version[0]
 a=['ccm','comp','mdm','newgenome','readsep','reformat','seprator','gala']
 for i in a:
-    b='/usr/bin/'
+    b=path
     c=''.join(list(open(i)))
-    c=c.replace('path=os.getcwd()','path="'+b+'/bin"')
-    d=open(b+i,'w')
-    d.writelines(c)
-    d.close()
-    os.system('chmod +x '+b+i)
-os.system('cp -RT src /usr/bin')
+    c=c.replace('path=os.getcwd()','path="'+b)
+    d=open(os.path.join(b,i),'w')
+    if version==2: 
+        d.writelines(c.replace('#!/usr/bin/env python3','!#'+py+' python2'))
+        d.close()
+    else:
+        d.writelines(c.replace('#!/usr/bin/env','!#'+py))
+        d.close()
+    os.system('chmod +x '+os.path.join(b,i))
+os.system('cp -RT src '+b)
 
