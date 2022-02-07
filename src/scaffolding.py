@@ -48,8 +48,8 @@ def scaff(scaffolds):
         i=1
     return(l)
 import os
-def scaffolding(path,number_of_drafts,block=10000,percentage=70,shortage_contig=50000,quality=20,out_file=False,output_name='scaffolds',output=os.getcwd()):
-    aa=cut_detector(path,number_of_drafts,block,percentage,shortage_contig,quality)
+def scaffolding(path,number_of_drafts,block=10000,percentage=70,shortage_contig=50000,quality=20,out_file=False,output_name='scaffolds',output=os.getcwd(),diff_1=50000,diff2=25000,diff3=15000):
+    aa=cut_detector(path,number_of_drafts,block,percentage,shortage_contig,quality,diff_1=diff_1,diff2=diff_2,diff3=diff_3)
     a=aa[2]
     #ori_block=block
     #ori_per=percentage

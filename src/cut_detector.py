@@ -48,7 +48,7 @@ def stat2(sq,eq,st,et,diff_sq,diff_eq,diff_st,diff_et,lq):
             return ('cut', str(sq)+' or '+str(st) +' and '+str(eq)+' or '+str(et),str(sq),str(eq))
 
 #path='/netscratch/dep_tsiantis/grp_gan/awad/todo/cor.reads/drafts_comp'
-def cut_detector(path,number_of_drafts,block=10000,percentage=70,shortage_contig=50000,quality=20,out_file=False,only_cut=False,output=os.getcwd()):
+def cut_detector(path,number_of_drafts,block=10000,percentage=70,shortage_contig=50000,quality=20,out_file=False,only_cut=False,output=os.getcwd(),diff_1=50000,diff2=25000,diff3=15000):
     a=reformated(path,number_of_drafts,block=block,percentage=percentage,shortage_contig=shortage_contig,quality=quality)
     l={}
     o={}
@@ -71,23 +71,23 @@ def cut_detector(path,number_of_drafts,block=10000,percentage=70,shortage_contig
                 lq=int(float(d[1]))
                 lt=int(float(d[6]))
                 if lq>1000000:
-                    diff_sq=12000
-                    diff_eq=lq-12000
+                    diff_sq=diff_1#12000
+                    diff_eq=lq-diff_1#12000
                 elif lq>100000:
-                    diff_sq=10000
-                    diff_eq=lq-10000
+                    diff_sq=diff_2#10000
+                    diff_eq=lq-diff_2#10000
                 else:
-                    diff_sq=5000
-                    diff_eq=lq-5000
+                    diff_sq=diff_3#5000
+                    diff_eq=lq-diff_3#5000
                 if lt>1000000:
-                    diff_st=12000
-                    diff_et=lt-12000
+                    diff_st=diff_1
+                    diff_et=lt-diff_1
                 elif lt>100000:
-                    diff_st=10000
-                    diff_et=lt-10000
+                    diff_st=diff_2
+                    diff_et=lt-diff_2
                 else:
-                    diff_st=5000
-                    diff_et=lt-5000
+                    diff_st=diff_3
+                    diff_et=lt-diff_3
                 if s=='+':
                     f=stat(sq,eq,st,et,diff_sq,diff_eq,diff_st,diff_et,lq)
                 else:

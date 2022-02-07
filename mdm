@@ -24,6 +24,10 @@ parser.add_argument("-q",nargs=1, type=int, default=[20], metavar='Mapping quali
 parser.add_argument("-k",nargs=1, type=int, default=[175], metavar='Mis-assembly block\t [default 175]\n\t\tIt is better to extend the misassembly block in case of\n\t\tunpolished assemblies or expected mis-assemblies in highly repetative regions',dest="cutblock")
 parser.add_argument("-t",nargs=1, type=str, default=['False'], metavar='cut on a threshold passed by -u\t[default False]',dest="threshold")
 parser.add_argument("-u",nargs=1, type=int, default=[3], metavar='threshold cut value\t[default 3]',dest="threshold_value")
+parser.add_argument("-l",nargs=1, type=int, default=[1], metavar='lowest number of discordances to cut\t[default 1]',dest="lowest_cut")
+parser.add_argument("--cut1",nargs=1, type=int, default=[50000], metavar='The length of the smallest discordance on contigs of length >= 1000000  \t[default 50000]\n\t\t Be very careful with this parameter',dest="diff_1")
+parser.add_argument("--cut2",nargs=1, type=int, default=[25000], metavar='The length of the smallest discordance on contigs of length >= 100000  \t[default 25000]\n\t\t Be very careful with this parameter',dest="diff_2")
+parser.add_argument("--cut3",nargs=1, type=int, default=[15000], metavar='The length of the smallest discordance on contigs of length >= 5000  \t[default 15000]\n\t\t Be very careful with this parameter',dest="diff_3")
 parser.add_argument("-f",nargs=1, type=str, default=['gathering'], metavar='Output files name\t[default gathering]',dest="name")
 parser.add_argument("-o",nargs=1, type=str, default=[os.getcwd()], metavar='output files path\t[default current directory]',dest="output")
 parser.add_argument('-v','--version', action='version', version='%(prog)s 1.0.0')
@@ -38,11 +42,15 @@ name=args.name[0]
 contig=args.contig[0]
 cutblock=args.cutblock[0]
 threshold_value=args.threshold_value[0]
+lowest_cut=args.lowest_cut[0]
+diff_1=args.diff_1[0]
+diff_2=args.diff_2[0]
+diff_3=args.diff_3[0]
 threshold=args.threshold[0]
 if threshold in ('False','FALSE','F','f'):
     threshold=False
 elif threshold in ('True','TRUE','T','t'):
     threshold=True
-cut_gathering(path=paf,number_of_drafts=drafts,block=block,percentage=percent,shortage_contig=contig,quality=qty,out_file=True,out_name=name,out_path=output,cut_block=cutblock,threshold=threshold,threshold_value=threshold_value)
+cut_gathering(path=paf,number_of_drafts=drafts,block=block,percentage=percent,shortage_contig=contig,quality=qty,out_file=True,out_name=name,out_path=output,lowest_cut=lowest_cut,cut_block=cutblock,threshold=threshold,threshold_value=threshold_value,diff_1=diff_1,diff_2=diff_2,diff_3=diff_3)
 if '-v':
 	parser.parse_args(['-v'])

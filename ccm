@@ -22,6 +22,9 @@ parser.add_argument("-c",nargs=1, type=int, default=[5000], metavar='Shortest co
 parser.add_argument("-q",nargs=1, type=int, default=[20], metavar='Mapping quality\t [default 20]',dest="qty")
 parser.add_argument("-f",nargs=1, type=str, default=['scaffolds'], metavar='Output files name\t[default scaffolds]',dest="name")
 parser.add_argument("-o",nargs=1, type=str, default=[os.getcwd()], metavar='output files path\t[default current directory]',dest="output")
+parser.add_argument("--cut1",nargs=1, type=int, default=[50000], metavar='The length of the smallest discordance on contigs of length >= 1000000  \t[default 50000]\n\t\t Be very careful with this parameter',dest="diff_1")
+parser.add_argument("--cut2",nargs=1, type=int, default=[25000], metavar='The length of the smallest discordance on contigs of length >= 100000  \t[default 25000]\n\t\t Be very careful with this parameter',dest="diff_2")
+parser.add_argument("--cut3",nargs=1, type=int, default=[15000], metavar='The length of the smallest discordance on contigs of length >= 5000  \t[default 15000]\n\t\t Be very careful with this parameter',dest="diff_3")
 parser.add_argument('-v','--version', action='version', version='%(prog)s 1.0.0')
 args = parser.parse_args()
 paf=args.mapping_files[0]
@@ -32,6 +35,9 @@ qty=args.qty[0]
 output=args.output[0]
 name=args.name[0]
 contig=args.contig[0]
-scaffolding(path=paf,number_of_drafts=drafts,block=block,percentage=percent,shortage_contig=contig,quality=qty,out_file=True,output_name=name,output=output)
+diff_1=args.diff_1[0]
+diff_2=args.diff_2[0]
+diff_3=args.diff_3[0]
+scaffolding(path=paf,number_of_drafts=drafts,block=block,percentage=percent,shortage_contig=contig,quality=qty,out_file=True,output_name=name,output=output,diff_1=diff_1,diff_2=diff_2,diff_3=diff_3)
 if '-v':
 	parser.parse_args(['-v'])
