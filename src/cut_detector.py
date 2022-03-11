@@ -48,7 +48,7 @@ def stat2(sq,eq,st,et,diff_sq,diff_eq,diff_st,diff_et,lq):
             return ('cut', str(sq)+' or '+str(st) +' and '+str(eq)+' or '+str(et),str(sq),str(eq))
 
 #path='/netscratch/dep_tsiantis/grp_gan/awad/todo/cor.reads/drafts_comp'
-def cut_detector(path,number_of_drafts,block=10000,percentage=70,shortage_contig=50000,quality=20,out_file=False,only_cut=False,output=os.getcwd(),diff_1=50000,diff2=25000,diff3=15000):
+def cut_detector(path,number_of_drafts,block=10000,percentage=70,shortage_contig=50000,quality=20,out_file=False,only_cut=False,output=os.getcwd(),diff_1=50000,diff_2=25000,diff_3=15000):
     a=reformated(path,number_of_drafts,block=block,percentage=percentage,shortage_contig=shortage_contig,quality=quality)
     l={}
     o={}

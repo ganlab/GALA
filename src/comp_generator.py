@@ -9,6 +9,7 @@
 import os
 def comp_generator(genomes,output=os.getcwd()):
     z=list(open(genomes))
+    z=filter(lambda i:'=' in i, z)
     a=[]
     for base in z:
         a.append(base.split('=')[0])
