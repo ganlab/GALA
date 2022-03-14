@@ -33,6 +33,9 @@ parser.add_argument("-q",nargs=1, type=int, default=[20], metavar='Mapping quali
 parser.add_argument("-f",nargs=1, type=str, default=['gathering'], metavar='Output files name\t[default gathering]',dest="name")
 parser.add_argument("-t",nargs=1, type=str, default=['False'], metavar='cut on a threshold passed by -u\t[default False]',dest="threshold")
 parser.add_argument("-u",nargs=1, type=int, default=[3], metavar='threshold cut value\t[default 3]',dest="threshold_value")
+parser.add_argument("--cut1",nargs=1, type=int, default=[50000], metavar='The length of the smallest discordance on contigs of length >= 1000000  \t[default 50000]\n\t\t Be very careful with this parameter',dest="diff_1")
+parser.add_argument("--cut2",nargs=1, type=int, default=[25000], metavar='The length of the smallest discordance on contigs of length >= 100000  \t[default 25000]\n\t\t Be very careful with this parameter',dest="diff_2")
+parser.add_argument("--cut3",nargs=1, type=int, default=[15000], metavar='The length of the smallest discordance on contigs of length >= 5000  \t[default 15000]\n\t\t Be very careful with this parameter',dest="diff_3")
 parser.add_argument("-o",nargs=1, type=str, default=[os.getcwd()], metavar='output files path\t[default current directory]',dest="output")
 parser.add_argument('-v','--version', action='version', version='%(prog)s 1.0.0')
 args = parser.parse_args()
@@ -56,6 +59,9 @@ output=args.output[0]
 output=os.path.abspath(output)
 name=args.name[0]
 contig=args.contig[0]
+diff_1=args.diff_1[0]
+diff_2=args.diff_2[0]
+diff_3=args.diff_3[0]
 assembler=args.assembler
 try:
     os.chdir(output)
@@ -78,7 +84,7 @@ om.close()
 os.system('sh draft_comp.sh')
 path_to_paf='preliminary_comparison'
 number_of_drafts=''.join(list(open(draft_names))).count('=')
-cut_gathering(path=path_to_paf,number_of_drafts=number_of_drafts,block=block,percentage=percent,shortage_contig=contig,quality=qty,out_file=True,out_name=name,out_path=workdir,cut_block=cutblock,threshold=threshold,threshold_value=threshold_value)
+cut_gathering(path=path_to_paf,number_of_drafts=number_of_drafts,block=block,percentage=percent,shortage_contig=contig,quality=qty,out_file=True,out_name=name,out_path=workdir,cut_block=cutblock,threshold=threshold,threshold_value=threshold_value,diff_1=diff_1,diff_2=diff_2,diff_3=diff_3)
 try:
     os.mkdir('new_genomes')
 except:
@@ -95,7 +101,7 @@ new_path=outpath
 os.chdir(outpath)
 os.system('sh draft_comp.sh')
 path_to_drafts='comparison'
-scaffolding(path='comparison',number_of_drafts=number_of_drafts,block=block,percentage=percent,shortage_contig=contig,quality=qty,out_file=True,output_name=name,output=outpath)
+scaffolding(path='comparison',number_of_drafts=number_of_drafts,block=block,percentage=percent,shortage_contig=contig,quality=qty,out_file=True,output_name=name,output=outpath,diff_1=diff_1,diff_2=diff_2,diff_3=diff_3)
 new_path=output+'/'+'new_genomes/'
 os.chdir(workdir+'/new_genomes')
 os.system('for i in *.fa; do bwa index $i;done')
