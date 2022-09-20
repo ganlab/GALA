@@ -1,5 +1,5 @@
 ﻿# Gap-Free Long-read Assembler (GALA) 
-**GALA** is a **Ga**p-free **L**ong-read **A**ssembler. GALA builds a multi-layer graph from different preliminary assemblies, long-reads, and potentially other sources of information, such as Hi-C assemblies. During this process, it identifies mis-assembled contigs and trim them. The corrected data are then partitioned into multiple linkage groups, each representing a single chromosome. Each linkage group is assembled independently with existing assembly tools and a simplified version of overlap-graph-based merging algorithm is used to merge multiple contigs if necessary.
+**GALA** is a **Ga**p-free **L**ong-read **A**ssembler. GALA builds a multi-layer graph from different preliminary assemblies, long-reads, and potentially other sources of information, such as Hi-C assemblies. During this process, it identifies mis-assembled contigs and trim them. The corrected data are then partitioned into multiple scaffolding groups, each representing a single chromosome. Each scaffolding group is assembled independently with existing assembly tools and a simplified version of overlap-graph-based merging algorithm is used to merge multiple contigs if necessary.
 
 
 **GALA** has [three modules](#Description)  each can be used separately.
@@ -94,11 +94,11 @@ optional arguments:
 	> comp `new_draft_names_paths.txt` 
 7. Run  `draft_comparison` file to produce new drafts comparison paf files.
 	> sh `draft_compare.sh`
-8. Run the `ccm` module to produce contigs `linkage groups`.
+8. Run the `ccm` module to produce contigs `scaffolding groups`.
 	> ccm `comparison_folder`  `number of assembly drafts`
 	- **Note:**
-		You can also use the `reformat` module to generate reformatted paf files and use them to confirm `linkage groups`.
-### Linkage Group Assembly Module (LGAM)
+		You can also use the `reformat` module to generate reformatted paf files and use them to confirm `Scaffolding groups`.
+### Scaffolding Group Assembly Module (SGAM)
 8. Map all drafts against raw long reads and self-corrected reads if available.
 	 > bwa index   `misassembly-free draft`
 	 bwa mem -x pacbio/ont2d `misassembly-free draft`	`long-reads` 
@@ -110,7 +110,7 @@ optional arguments:
 	> sh bam_seprator.sh
 	
 	> for i in bams/*; do samtools view $i | cut -f 1 > $i.read_names;done;
-11. Use the `cat` command to concatenate read name files belongs to the same `linkage group`.
+11. Use the `cat` command to concatenate read name files belongs to the same `scaffolding group`.
 	* For example:
 		> cat contig_1.bam.read_names contig_3.bam.read_names contig_7.bam.read_names > scaffold_1.read_names
 12. Use the `readsep` Module to separate each scaffold correlated-reads.
@@ -121,7 +121,7 @@ optional arguments:
 	assembly software, e.g.(Canu, Flye, Mecat, Miniasm, and Wtdbg).
 	```
 	**we recommend** the user to try different  assembly tools especially ( [Flye](https://github.com/fenderglass/Flye), [MECAT](https://github.com/xiaochuanle/MECAT)/[NECAT](https://github.com/xiaochuanle/NECAT), and [Miniasm](https://github.com/lh3/miniasm))
-14. Finally, map the **LGAM**  outcomes against one of the preliminary draft assemblies to confirm that all the contigs in the `linkage group` are assembled to the right chromosome/Scaffold. 
+14. Finally, map the **SGAM**  outcomes against one of the preliminary draft assemblies to confirm that all the contigs in the `scaffolding group` are assembled to the right chromosome/Scaffold. 
  
 ## Description
 ### **comp:**
@@ -180,9 +180,9 @@ optional arguments:
   -v, --version         show program's version number and exit
 ```
 ### **ccm:**
-Contig Clustering Module used to identify the `linkage groups` and the contigs overlap information in multiple  preliminary assemblies. 
+Contig Clustering Module used to identify the `scaffolding groups` and the contigs overlap information in multiple  preliminary assemblies. 
 
-ccm could have extended applications in generating consensus assembly from multiple sequences. Besides, it is useful in reference guide scaffolding to determine Chromosomes `linkage groups`
+ccm could have extended applications in generating consensus assembly from multiple sequences. Besides, it is useful in reference guide scaffolding to determine Chromosomes `scaffolding groups`
   ```
   usage: ccm -h  [options] <path/to/mapping_files> <number of drafts>
 
