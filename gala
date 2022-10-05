@@ -5,8 +5,18 @@
 #  Company: Xiangchao Gan lab (MPIPZ)                          #
 #  Released under the (MIT) license (see LICENSE file)         #
 ################################################################
-import os
-import sys
+
+
+
+##########################################################################################################################
+## GLOBAL MODULES
+##########################################################################################################################
+import os, sys, argparse
+
+
+##########################################################################################################################
+## LOCAL MODULES
+##########################################################################################################################
 scr='src'
 path=os.path.dirname(os.path.abspath(__file__))
 absolute=os.path.join(path,scr)
@@ -17,12 +27,21 @@ from new_genome import genomes
 from scaffolding import scaffolding
 from bam_seprator import bam_seprator
 from read_extract import read_extract
-import argparse
-parser = argparse.ArgumentParser(prog="gala",usage='%(prog)s -h  [options] <draft_names & paths> <fa/fq> <reads> <platform>',description='GALA Gap-free Long-reads Assembler')
-parser.add_argument("draft_names",nargs=1,type=str,help='Draft names and paths\t[required]')
-parser.add_argument("input_file",nargs=1,type=str,help='input type (fq/fa) \t[required]')
-parser.add_argument("reads",nargs=1,type=str,help='raw/corrected reads\t[required]')
-parser.add_argument("sequencing_platform",nargs=1,type=str,help='\n\tpacbio-raw\n\tpacbio-corrected\n\tnanopore-raw\n\tnanopore-corrected\n\t\t[required]')
+
+
+##########################################################################################################################
+## PARSE ARGUMENTS
+##########################################################################################################################
+## Init.
+parser = argparse.ArgumentParser(prog="gala",
+                                 usage='%(prog)s -h  [options] <draft_names & paths> <fa/fq> <reads> <platform>',
+                                 description='GALA Gap-free Long-reads Assembler')
+
+## Add args.
+parser.add_argument("draft_names", nargs=1, type=str, help='Draft names and paths\t[required]')
+parser.add_argument("input_file", nargs=1, type=str, help='input type (fq/fa) \t[required]')
+parser.add_argument("reads", nargs=1, type=str, help='raw/corrected reads\t[required]')
+parser.add_argument("sequencing_platform", nargs=1, type=str, help='\n\tpacbio-raw\n\tpacbio-corrected\n\tnanopore-raw\n\tnanopore-corrected\n\t\t[required]')
 parser.add_argument("-a",nargs='*', type=str, default=['canu'], help='Chr-by_Chr assembler (canu flye miniasm) \t [default canu]',dest="assembler")
 parser.add_argument("-b",nargs=1, type=int, default=[5000], metavar='Alignment block length\t [default 5000]',dest="block")
 parser.add_argument("-p",nargs=1, type=int, default=[70], metavar='Alignment identity percentage\t [default 70%]',dest="percent")
@@ -37,8 +56,37 @@ parser.add_argument("--cut1",nargs=1, type=int, default=[50000], metavar='The le
 parser.add_argument("--cut2",nargs=1, type=int, default=[25000], metavar='The length of the smallest discordance on contigs of length >= 100000  \t[default 25000]\n\t\t Be very careful with this parameter',dest="diff_2")
 parser.add_argument("--cut3",nargs=1, type=int, default=[15000], metavar='The length of the smallest discordance on contigs of length >= 5000  \t[default 15000]\n\t\t Be very careful with this parameter',dest="diff_3")
 parser.add_argument("-o",nargs=1, type=str, default=[os.getcwd()], metavar='output files path\t[default current directory]',dest="output")
-parser.add_argument('-v','--version', action='version', version='%(prog)s 1.0.0')
+parser.add_argument('-v','--version', action='version', version='%(prog)s 1.0.1')
+
+
+## Speeding up the Gala pipeline
+parser.add_argument("--threads", type=int, default=4, dest="threads", help='''Number of threads to use with Minimap2 and BWA.''')
+parser.add_argument("--fastmode", action='store_true', default=False, help='''Use Minimap2 for read-mapping steps instead of BWA.''')
+
+## High quality read data options
+parser_hq = parser.add_mutually_exclusive_group(required=False)
+parser_hq.add_argument("--hifi", action='store_true', default=False, help='''Use this flag if long read data is >99 pct accuracy on average. Default : assumes false. Affects some paramter choices. Typically for PacBioHiFi, but perhaps can work with Nanopore Q20/Q30 chemistry (avg accuracy >99 pct).''')
+parser_hq.add_argument("--sac", action='store_true', default=False, help='''Use this flag if nanopore data is >90-95 pct accuracy on average (e.g. super accurate basecalling mode, SAC). Default : assumes false. Affects some paramter choices. See: https://github.com/marbl/canu/issues/2121 ''')
+parser.add_argument("--forcetrim", action='store_true', default=False, help='''Optional use with --sac option to force end trimming of reads in Canu pipeline. See: https://github.com/marbl/canu/issues/2121''')
+
+## Additional argments to various assemblers:
+parser.add_argument("--tellcanu",nargs=1, type=str, default="", help='''Put additional parameters to feed Canu in quotes.''')
+parser.add_argument("--tellflye",nargs=1, type=str, default="", help='''Put additional parameters to feed Flye in quotes.''')
+parser.add_argument("--tellminiasm",nargs=1, type=str, default="", help='''Put additional parameters to feed Miniasm in quotes.''')
+
+## Debug messages (for development purposes)
+parser.add_argument('--debug', action='store_true', default=False)
+
+## TO POTENTIALLY BE INCLUDED IN FUTURE
+#parser.add_argument("--hq", action='store_true', default=False, help='''Use this flag if long read data is >90% identity on average. Default : assumes false. Affects some paramter choices.''')
+
+## Parse.
 args = parser.parse_args()
+
+
+##########################################################################################################################
+## PROCESS ARGS
+##########################################################################################################################
 draft_names=args.draft_names[0]
 draft_names=os.path.abspath(draft_names)
 reads=args.reads[0]
@@ -63,6 +111,61 @@ diff_1=args.diff_1[0]
 diff_2=args.diff_2[0]
 diff_3=args.diff_3[0]
 assembler=args.assembler
+
+
+
+#bwatype=""
+
+if 'pacbio' in platform:
+    bwatype="-x pacbio"
+    mm2type="-x map-pb"
+    mm2type_asm="-x ava-pb"
+elif 'nanopore' in platform:
+    bwatype="-x ont2d"
+    mm2type="-x map-ont"
+    mm2type_asm="-x ava-ont"
+
+
+## Flye platform (keep this above HQ updates below)
+flyeplatform=platform.replace('nanopore','nano').replace('corrected','corr')
+
+## Updates if high quality (HQ) settings used
+if args.hifi:
+    mm2type="-x map-hifi"
+    platform="pacbio-hifi"
+    flyeplatform="pacbio-hifi"
+elif args.sac:
+    flyeplatform = flyeplatform.replace('corr','hq').replace('raw','hq') if 'nanopore' in flyeplatform else 'pacbio-corr' ## if pacbio data and --sac specified, just default to corrected pacbio params, not hifi.
+    platform="pacbio-hifi 'batOptions=-eg 0.10 -sb 0.01 -dg 2 -db 1 -dr 3'"
+    if args.forcetrim:
+       platform += "-untrimmed"
+
+
+## Extra parameters to feed mappers and assemblers
+extraBWAparameters=' '.join(['-t', str(args.threads), bwatype])
+extraMM2parameters_asms=' '.join(['-t', str(args.threads)])
+extraMM2parameters_reads=' '.join(['-t', str(args.threads), mm2type])
+extraCANUparameters = args.tellcanu
+extraFLYEparameters = args.tellflye
+extraMINIASMparameters = args.tellminiasm
+
+if args.debug:
+    print("Input args")
+    print(args)
+    print("Updated args")
+    all_args = dict(draft_names=draft_names, reads=reads, input_file=input_file, platform=platform, flyeplatform=flyeplatform, block=block, 
+                    threshold_value=threshold_value, threshold=threshold, cutblock=cutblock, percent=percent,
+                    qty=qty, output=output, name=name, contig=contig, diff_1=diff_1, diff_2=diff_2, diff_3=diff_3,
+                    assembler=assembler, bwatype=bwatype, mm2type=mm2type, mm2type_asm=mm2type_asm, extraBWAparameters=extraBWAparameters, 
+                    extraMM2parameters_asms=extraMM2parameters_asms, extraMM2parameters_reads=extraMM2parameters_reads, extraCANUparameters=extraCANUparameters,
+                    extraFLYEparameters=extraFLYEparameters, extraMINIASMparameters=extraMINIASMparameters)
+    for k,v in list(all_args.items()):
+        print('\t'.join(str(e) for e in [k,v]))
+
+
+##########################################################################################################################
+## SET UP WORKING DIRECTORY
+##########################################################################################################################
 try:
     os.chdir(output)
 except:
@@ -75,50 +178,200 @@ except:
 new_dir=os.path.join(output,'gala_results')
 os.chdir(new_dir)
 workdir=os.getcwd()
-comp_generator(genomes=draft_names,output=workdir)
+
+
+
+
+##########################################################################################################################
+##########################################################################################################################
+##########################################################################################################################
+## Mis Assembly Detector Module (MDM)
+##########################################################################################################################
+##########################################################################################################################
+##########################################################################################################################
+## Draft assembly comparisons (whole genome alignments with Minimap2)
+## Generate mis-assembly-free draft assemblies
+##########################################################################################################################
+
+##########################################################################################################################
+## 1. Use the comp module to generate a draft_comparison file.
+##########################################################################################################################
+comp_generator(genomes=draft_names,
+               output=workdir,
+               mm2params=extraMM2parameters_asms)
 op=''.join(list(open('draft_comp.sh')))
 op=op.replace('comparison','preliminary_comparison')
 om=open('draft_comp.sh','w')
 om.writelines(op)
 om.close()
+
+##########################################################################################################################
+## 2. Run draft_comparison file to produce drafts comparison paf files.
+##########################################################################################################################
 os.system('sh draft_comp.sh')
 path_to_paf='preliminary_comparison'
+
+
+##########################################################################################################################
+## 3. Use the mdm module to identify mis-assembled contigs.
+##########################################################################################################################
 number_of_drafts=''.join(list(open(draft_names))).count('=')
-cut_gathering(path=path_to_paf,number_of_drafts=number_of_drafts,block=block,percentage=percent,shortage_contig=contig,quality=qty,out_file=True,out_name=name,out_path=workdir,cut_block=cutblock,threshold=threshold,threshold_value=threshold_value,diff_1=diff_1,diff_2=diff_2,diff_3=diff_3)
+
+cut_gathering(path=path_to_paf,
+              number_of_drafts=number_of_drafts,
+              block=block,
+              percentage=percent,
+              shortage_contig=contig,
+              quality=qty,
+              out_file=True,
+              out_name=name,
+              out_path=workdir,
+              cut_block=cutblock,
+              threshold=threshold,
+              threshold_value=threshold_value,
+              diff_1=diff_1,
+              diff_2=diff_2,
+              diff_3=diff_3)
+
+##########################################################################################################################
+## 4. Use the newgenome module to Produce misassembly-free drafts. :: gala_results/new_genomes/new_draft_names_paths.txt is made here.
+##########################################################################################################################
 try:
     os.mkdir('new_genomes')
 except:
     pass
-genomes(genomes=draft_names,gathering=os.path.join(workdir,name),gathering_name=name,outpath=workdir+'/new_genomes')
+genomes(genomes=draft_names, 
+        gathering=os.path.join(workdir,name), 
+        gathering_name=name, 
+        outpath=workdir+'/new_genomes')
 new_path=workdir+'/'+'new_genomes/'
+
+
+
+##########################################################################################################################
+##########################################################################################################################
+##########################################################################################################################
+## Contig Clustering Module (CCM)
+##########################################################################################################################
+##########################################################################################################################
+##########################################################################################################################
+## Updated draft assembly comparisons (whole genome alignments with Minimap2)
+## Identifying contig clusters
+##########################################################################################################################
+
+
+##########################################################################################################################
+## 5. Use the comp module to generate a draft_comparison file for misassembly-free drafts.
+##########################################################################################################################
 try:
     os.mkdir('gap_free_comp')
 except:
     pass
+
 outpath=workdir+'/gap_free_comp'
-comp_generator(genomes=new_path+'new_draft_names_paths.txt',output=outpath)
+
+comp_generator(genomes=new_path+'new_draft_names_paths.txt', 
+               output=outpath,
+               mm2params=extraMM2parameters_asms)
 new_path=outpath
 os.chdir(outpath)
+
+
+##########################################################################################################################
+## 6. Run draft_comparison file to produce new drafts comparison paf files.
+##########################################################################################################################
 os.system('sh draft_comp.sh')
 path_to_drafts='comparison'
-scaffolding(path='comparison',number_of_drafts=number_of_drafts,block=block,percentage=percent,shortage_contig=contig,quality=qty,out_file=True,output_name=name,output=outpath,diff_1=diff_1,diff_2=diff_2,diff_3=diff_3)
+
+
+##########################################################################################################################
+## 7. Run the ccm module to produce contigs scaffolding groups.
+##########################################################################################################################
+scaffolding(path='comparison',
+            number_of_drafts=number_of_drafts,
+            block=block,
+            percentage=percent,
+            shortage_contig=contig,
+            quality=qty,
+            out_file=True,
+            output_name=name,
+            output=outpath,
+            diff_1=diff_1,
+            diff_2=diff_2,
+            diff_3=diff_3)
 new_path=output+'/'+'new_genomes/'
 os.chdir(workdir+'/new_genomes')
-os.system('for i in *.fa; do bwa index $i;done')
+
+
+
+##########################################################################################################################
+##########################################################################################################################
+##########################################################################################################################
+## Scaffolding Group Assembly Module (SGAM)
+##########################################################################################################################
+##########################################################################################################################
+##########################################################################################################################
+## Map reads to updated drafts
+## For each draft, partition reads into groups based on contigs they map to
+## Join reads based on contig clusters
+## Assemble reads in each cluster separately
+##########################################################################################################################
+
+
+
+##########################################################################################################################
+## 8. Map all drafts against raw long reads and self-corrected reads if available.
+##########################################################################################################################
+
+## BWA INDEXING
+if not args.fastmode:
+    os.system('for i in *.fa; do bwa index $i; done')
+
+## change dir
 os.chdir(workdir)
+
+## SET UP FOR BWA (or MM2) MAPPING
 try:
     os.mkdir('mapping')
 except:
     pass
+
 mapping=list(open('new_genomes/new_draft_names_paths.txt'))
 for i in mapping:
-    dirname=i.split('=')[0]
+    dirname=i.strip().split('=')[0]
     os.system('mkdir -p mapping/'+dirname)
+
+## Perform read mapping.
 for i in mapping:
-    dirname=i.split('=')[0]
-    genomdir=i.split('=')[1].replace('\n','')
-    os.system('bwa mem '+genomdir+' '+reads+'| samtools sort | samtools view -Sb > mapping/'+dirname+'/mapping.bam')
-    os.system('samtools index mapping/'+dirname+'/mapping.bam')
+    dirname=i.strip().split('=')[0]
+    genomdir=i.strip().split('=')[1]
+    SAMPIPE=''.join(['| samtools sort | samtools view -Sb > mapping/', dirname, '/mapping.bam'])
+    SAMIDXCMD=' '.join(['samtools index mapping/', dirname, '/mapping.bam'])
+    ## GET MAPPING COMMAND (MAPCMD)
+    if not args.fastmode:
+        ## USE BWA
+        MAPCMD=' '.join(['bwa mem', extraBWAparameters, genomdir, reads, SAMPIPE])
+        #os.system('bwa mem '+genomdir+' '+reads+'| samtools sort | samtools view -Sb > mapping/'+dirname+'/mapping.bam')
+        #os.system('samtools index mapping/'+dirname+'/mapping.bam')
+    else:
+        ## Use Minimap2
+        MAPCMD=' '.join(['minimap2 -x asm5', extraBWAparameters_reads, genomdir, reads, SAMPIPE])
+
+    ## EXECUTE
+    os.system(MAPCMD)
+    os.system(SAMIDXCMD)
+
+
+##########################################################################################################################
+## 9. Use the following commands to separate the read names mapped to each contig
+##########################################################################################################################
+##	samtools view -H bam_file |grep "SQ"|cut -f 2|cut -d : -f 2 > contig_names
+##	seprator contig_names mapping.bam
+##	sh bam_seprator.sh
+##	for i in bams/*; do samtools view $i | cut -f 1 > $i.read_names;done;
+##########################################################################################################################
+
+
 new_path=workdir+'/'+'mapping/'
 os.chdir(workdir+'/mapping')
 for i in mapping:
@@ -133,6 +386,14 @@ for i in mapping:
     os.system('sh bam_seprator.sh')
     os.chdir(new_path+dirname+'/bams')
     os.system('for i in *; do samtools view $i | cut -f 1 > $i.read_names;done;')
+
+
+
+
+
+##########################################################################################################################
+## 10. Use the cat command to concatenate read name files belongs to the same scaffolding group.
+##########################################################################################################################
 dirnames=[]
 for i in mapping:
     dirnames.append(i.split('=')[0])
@@ -159,6 +420,12 @@ for base in dirnames:
             oa.writelines(rr)
             nn=nn+1
     oa.close()
+
+
+##########################################################################################################################
+## 11. Use the readsep Module to separate each scaffold correlated-reads.
+##########################################################################################################################
+
 for i in dirnames:
     os.chdir(os.path.join(new_path,i))
     os.system('sh scaffolds')
@@ -166,14 +433,29 @@ for i in dirnames:
     for base in mm:
         mn=base.split(' > ../')[-1].replace('\n','')
         read_extract(reads,mn,input_file)
+
+
+##########################################################################################################################
+## 12. Implement Chromosome-by-Chromosome assembly approach to retrieve the gap-free chromosome-scale assembly by
+##########################################################################################################################
+
+
+## WRITE SCRIPT FOR ASSEMBLIES
+
 if 'canu' in assembler:
     for i in dirnames:
         rmn=open(new_path+i+'/assembly_c.sh','w')
         os.chdir(os.path.join(new_path,i))
         mm=list(open('scaffolds'))[1:]
         for base in mm:
-            mn=base.split(' > ../')[-1].replace('.read_names\n','.read.fq')
-            rmn.writelines('canu -p canu_'+mn.replace('.read.fq','')+ ' -d canu_'+mn.replace('.read.fq','')+' genomeSize='+str(int(ok[i][mn.replace('.read.fq','')])/1000000)+ 'm -' +platform+' '+new_path+i+'/'+mn+'\n')
+            mn = base.split(' > ../')[-1].replace('.read_names\n','.read.fq')
+            px = mn.replace('.read.fq','')
+            gs = str(int(ok[i][px])/1000000)
+            npimn = new_path + i + '/' + mn
+            CANUCMD = ' '.join(['canu -p canu_', px, ' -d canu_', px, extraCANUparameters, 'genomeSize=', gs+'m', '-'+platform, npimn])
+            #rmn.writelines('canu -p canu_'+mn.replace('.read.fq','')+ ' -d canu_'+mn.replace('.read.fq','')+' genomeSize='+str(int(ok[i][mn.replace('.read.fq','')])/1000000)+ 'm -' +platform+' '+new_path+i+'/'+mn+'\n')
+            rmn.writelines(CANUCMD+'\n')
+
 if 'flye' in assembler:
     for i in dirnames:
         rmn=open(new_path+i+'/assembly_f.sh','w')
@@ -181,9 +463,17 @@ if 'flye' in assembler:
         mm=list(open('scaffolds'))[1:]
         for base in mm:
             mn=base.split(' > ../')[-1].replace('.read_names\n','.read.fq')
-            rmn.writelines('cd '+workdir+'/chr_by_chr/'+i+'\n')
-            rmn.writelines('mkdir -p flye_'+mn.replace('.read.fq','\ncd flye_')+mn.replace('.read.fq','\n'))
-            rmn.writelines('flye --out-dir flye_'+mn.replace('.read.fq','')+' --genome-size '+str(int(ok[i][mn.replace('.read.fq','')])/1000000)+ 'm --' +platform.replace('nanopore','nano').replace('corrected','corr')+' '+new_path+i+'/'+mn+'\n')
+            px=mn.replace('.read.fq','')
+            gs=str(int(ok[i][mn.replace('.read.fq','')])/1000000)
+            npimn = new_path+i+'/'+mn
+            cddir=workdir+'/chr_by_chr/'+i
+            FLYECMD=' '.join(['flye --out-dir flye_', px, extraFLYEparameters, '--genome-size', gs+'m', '--'+flyeplatform, npimn])
+
+            rmn.writelines('cd ' + cddir + '\n')
+            rmn.writelines('mkdir -p flye_'+ px + '\n')
+            rmn.writelines('cd flye_' + px + '\n')
+            rmn.writelines(FLYCMD+'\n')
+
 if 'miniasm' in assembler:
     for i in dirnames:
         rmn=open(new_path+i+'/assembly_m.sh','w')
@@ -191,24 +481,36 @@ if 'miniasm' in assembler:
         mm=list(open('scaffolds'))[1:]
         for base in mm:
             mn=base.split(' > ../')[-1].replace('.read_names\n','.read.fq')
-            rmn.writelines('cd '+workdir+'/chr_by_chr/'+i+'\n')
-            rmn.writelines('mkdir -p miniasm_'+mn.replace('.read.fq','\ncd miniasm_')+mn.replace('.read.fq','\n'))
-            if 'pacbio' in platform:
-                rmn.writelines('minimap2 -x ava-pb '+new_path+i+'/'+mn+' '+new_path+i+'/'+mn+' | gzip -1 > '+mn.replace('.read.fq','')+'.paf.gz\n')
-                rmn.writelines('miniasm -f '+new_path+i+'/'+mn+' '+mn.replace('.read.fq','')+'.paf.gz > '+mn.replace('.read.fq','.gfa\n'))
-                rmn.writelines("awk "+"'/^S/{print "+'">"$2"\\n"$3}'+"' "+mn.replace('.read.fq','.gfa ')+ '> '+mn.replace('.read.fq','.fa\n'))
-                rmn.writelines('flye --polish-target '+mn.replace('.read.fq','.fa') +' --out-dir . -'+platform.replace('corrected','corr')+' '+new_path+i+'/'+mn+' --iterations 3'+'\n')
-            elif 'nanopore' in platform:
-                rmn.writelines('minimap2 -x ava-ont '+new_path+i+'/'+mn+' '+new_path+i+'/'+mn+' | gzip -1 > '+mn.replace('.read.fq','')+'.paf.gz\n')
-                rmn.writelines('miniasm -f '+new_path+i+'/'+mn+' '+mn.replace('.read.fq','')+'.paf.gz > '+mn.replace('.read.fq','.gfa\n'))
-                rmn.writelines("awk "+"'/^S/{print "+'">"$2"\\n"$3}'+"' "+mn.replace('.read.fq','.gfa ')+ '> '+mn.replace('.read.fq','.fa\n'))
-                rmn.writelines('flye --polish-target '+mn.replace('.read.fq','.fa') +' --out-dir . --'+platform.replace('corrected','corr').replace('nanopore','nano')+' '+new_path+i+'/'+mn+' --iterations 3'+'\n')
+            px=mn.replace('.read.fq','')
+            cddir=workdir+'/chr_by_chr/'+i
+            READS=new_path+i+'/'+mn
+            OVERLAPS=px+'.paf.gz'
+            GFA=px+'.gfa'
+            FA=px+'.fa'
+            GZIPPIPE='| gzip -1 > ' + OVERLAPS
+            MM2CMD=' '.join(['minimap2', mm2type_asm, READS, READS, GZIPPIPE])
+            MACMD=' '.join(['miniasm -f', READS, OVERLAPS, '>', GFA])
+            FLYEPOLCMD=' '.join(['flye --polish-target', FA, '--out-dir .', '--'+ flyeplatform, READS, '--iterations 3'])
+
+            rmn.writelines('cd ' + cddir + '\n')
+            rmn.writelines('mkdir -p miniasm_'+px+'\n') 
+            rmn.writelines('cd miniasm_'+px + '\n')
+            rmn.writelines(MM2CMD+'\n')
+            rmn.writelines(MACMD+'\n')
+            rmn.writelines("awk " + "'/^S/{print " + '">"$2"\\n"$3}' + "' " + GFA + ' > ' + FA + '\n')
+            rmn.writelines(FLYEPOLCMD+'\n')
+
+
+## EXECUTE ASSEMBLIES
 os.chdir(workdir)
+
 try:
     os.mkdir('chr_by_chr')
 except:
     pass
+
 os.chdir(workdir+'/chr_by_chr')
+
 for i in mapping:
     dirname=i.split('=')[0]
     try:
@@ -218,5 +520,11 @@ for i in mapping:
     os.chdir(workdir+'/chr_by_chr/'+dirname)
     os.system('sh '+new_path+dirname+'/assembly_*.sh')
 
+
+
+
+
+
+## VERSION
 if '-v':
 	parser.parse_args(['-v'])

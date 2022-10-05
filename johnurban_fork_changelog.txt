@@ -1,0 +1,47 @@
+###############################################################################################################
+JohnUrban Fork First Commit - 20221005 1:45pm EST
+###############################################################################################################
+1. GALA/gala was changed in the following ways:
+	- Code was cleaned up and organized
+		- imports grouped on single line where possible
+		- imports grouped based on global and local modules
+		- code was broken up into sections that were labeled with pertinent titles and obvious comment lines (###############################)
+		- pipeline code was specifically broken up into lines that correspond to the 13 steps described for "GALA Single Command Mode" in the README.md file : https://github.com/ganlab/GALA/README.md 
+	- Arguments were added.
+		- Adding number of threads to specify to Minimap2 and BWA		(--threads)
+		- Optional use of Minimap2 instead of BWA for read mapping step.	(--fastmode)
+		- Specify if reads are HiFi (>99% accuracy)				(--hifi)
+		- Specify if reads are 'super accurate' (>90-95% accuracy)		(--sac)
+		- Give Canu extra parameters						(--tellcanu)
+		- Give Flye extra parameters						(--tellflye)
+		- Give Miniasm extra parameters						(--tellminiasm)
+	- sequencing_platform argument now affects BWA (or Minimap2) parameters
+		- pacbio reads -> "-x pacbio" and "-x map-pb"
+		- nanopore reads -> "-x ont2d" and "-x map-ont"
+		- new --hq arg may affect this further in future.................................................
+	- Step12 (assembly) code edited
+		- Other Canu parameters now possible, specifically :
+			- the new --sac option adjusts parameters for super accurate data (>90% accuracy, typically nanopore) 
+				- See: https://github.com/marbl/canu/issues/2121
+			- the new --hifi option adjusts parameters for high fidelity data (>99% accuracy, typically pacbio hifi, but perhaps nanopore Q20/Q30 chemistry).
+		- Flye parameters affected too 
+		- Code for writing the assembly script cleaned up a bit. Trying to make it more human-readable.
+	- Updated version from 1.0.0 to 1.0.1
+
+2. All tabs in GALA/src/read_extract.py were converted to 4 spaces. See issue #25 : https://github.com/ganlab/GALA/issues/25
+	This was performed with AWK: 
+		awk '{gsub("\t","    "); print}'
+
+3. GALA/src/comp_generator.py was changed in the following ways:
+	- See isssue : https://github.com/ganlab/GALA/issues/27
+	- Original comp_generator function renamed to DEPRECATED_comp_generator ; saved in the file for now.
+	- New comp_generator function made:
+		- uses a dict instead of list.
+		- The minimap2 commands write absolute paths to draft assemblies.
+		- "echo" statements were added to help diagnose issues.
+		- takes optional extra argument for "mm2params" ; in main gala script this is used as such "mm2params=extraMM2parameters_asms"; allows threading, etc.
+
+
+###############################################################################################################
+Gala forked from main Repo on 20221005 (most recent commit was commit 1478dbf53b77c4e9e04392cffda020c91448afbd -- GALA update SGAM name -- 2022-09-20 
+###############################################################################################################
