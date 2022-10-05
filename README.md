@@ -78,6 +78,22 @@ optional arguments:
   -f Output files name	[default gathering]
   -o output files path	[default current directory]
   -v, --version         show program's version number and exit
+
+
+  JohnUrbanFork-specific options
+  --threads THREADS     Number of threads to use with Minimap2 and BWA.
+  --fastmode            Use Minimap2 for read-mapping steps instead of BWA.
+  --hifi                Use this flag if long read data is >99 pct accuracy on average. Default : assumes false. Affects some paramter choices. Typically for PacBioHiFi, but perhaps can work with
+                        Nanopore Q20/Q30 chemistry (avg accuracy >99 pct).
+  --sac                 Use this flag if nanopore data is >90-95 pct accuracy on average (e.g. super accurate basecalling mode, SAC). Default : assumes false. Affects some paramter choices. See:
+                        https://github.com/marbl/canu/issues/2121
+  --forcetrim           Optional use with --sac option to force end trimming of reads in Canu pipeline. See: https://github.com/marbl/canu/issues/2121
+  --tellcanu TELLCANU   Put additional parameters to feed Canu in quotes.
+  --tellflye TELLFLYE   Put additional parameters to feed Flye in quotes.
+  --tellminiasm TELLMINIASM
+                        Put additional parameters to feed Miniasm in quotes.
+  --debug
+
 ```
 ## GALA Step-by-Step Mode (recommended)
 ### Mis Assembly Detector Module (MDM)
