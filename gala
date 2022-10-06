@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 ################################################################
 #  This file part of GALA Gap-free Long-reads Assembler        #
-#  Auther: Mohamed awad                                        #
+#  Author: Mohamed awad                                        #
 #  Company: Xiangchao Gan lab (MPIPZ)                          #
 #  Released under the (MIT) license (see LICENSE file)         #
+#  This file has been updated by John Urban.                   #
 ################################################################
 
 
@@ -62,6 +63,21 @@ parser.add_argument('-v','--version', action='version', version='%(prog)s 1.0.1'
 ## Speeding up the Gala pipeline
 parser.add_argument("--threads", type=int, default=4, dest="threads", help='''Number of threads to use with Minimap2 and BWA.''')
 parser.add_argument("--fastmode", action='store_true', default=False, help='''Use Minimap2 for read-mapping steps instead of BWA.''')
+parser.add_argument("--resume", action='store_true', default=False, help='''GALA will look for last successfully completed step, and continue (resume). It will redo any steps along pipeline that do not have Step_xxx.done touch files...''')
+parser.add_argument("--continue_from", type=int, default=1, help='''GALA will look try to start from step specified:
+	1 = Beginning of the pipeline (generating draft_compare.sh script to run).
+	2 = Running draft_compare.sh. 
+	3 = Identify mis-assembled contigs.
+	4 = Produce misassembly-free drafts.
+	5 = Generate script to compare the misassembly-free drafts.
+	6 = Run draft_comparison file to produce new drafts comparison paf files.
+	7 = Run the ccm module to produce contigs scaffolding groups.
+	8 = Map all drafts against raw long reads and self-corrected reads if available.
+	9 = Separate the read names mapped to each contig.
+	10 = Concatenate read name files belongs to the same scaffolding group.
+	11 = Use the readsep Module to separate each scaffold correlated-reads.
+	12 = Run assemblies.
+	''')
 
 ## High quality read data options
 parser_hq = parser.add_mutually_exclusive_group(required=False)
@@ -112,10 +128,11 @@ diff_2=args.diff_2[0]
 diff_3=args.diff_3[0]
 assembler=args.assembler
 
+## ARGS REGARDING HOW TO PROCEED
+continuefrom = args.continue_from
+passdonesteps = args.resume
 
-
-#bwatype=""
-
+## ARGS REGARDING MAPPING AND ASSEMBLING
 if 'pacbio' in platform:
     bwatype="-x pacbio"
     mm2type="-x map-pb"
@@ -149,10 +166,12 @@ extraCANUparameters = args.tellcanu
 extraFLYEparameters = args.tellflye
 extraMINIASMparameters = args.tellminiasm
 
+
+## DEBUG MESSAGE : Useful even when not debugging.
 if args.debug:
-    print("Input args")
+    print("\nInput args ::\n")
     print(args)
-    print("Updated args")
+    print("\nUpdated args ::\n")
     all_args = dict(draft_names=draft_names, reads=reads, input_file=input_file, platform=platform, flyeplatform=flyeplatform, block=block, 
                     threshold_value=threshold_value, threshold=threshold, cutblock=cutblock, percent=percent,
                     qty=qty, output=output, name=name, contig=contig, diff_1=diff_1, diff_2=diff_2, diff_3=diff_3,
@@ -161,7 +180,8 @@ if args.debug:
                     extraFLYEparameters=extraFLYEparameters, extraMINIASMparameters=extraMINIASMparameters)
     for k,v in list(all_args.items()):
         print('\t'.join(str(e) for e in [k,v]))
-
+    print("Starting.....\n")
+    sys.stdout.flush()
 
 ##########################################################################################################################
 ## SET UP WORKING DIRECTORY
@@ -178,9 +198,55 @@ except:
 new_dir=os.path.join(output,'gala_results')
 os.chdir(new_dir)
 workdir=os.getcwd()
+MAINDIR=workdir
+PROGDIR=workdir + '/progress'
+os.mkdir(PROGDIR)
 
+##########################################################################################################################
+## HELPER FXNS
+##########################################################################################################################
+def touch(x):
+    os.system("touch " + PROGDIR + "/" + x)
 
+def step_successful(exitcode):
+    if exitcode == 0:
+        return True
+    return False
 
+def quit_and_explain(msg):
+    print(msg)
+    quit()
+
+def assess_progress(exitcode, step):
+    if step_successful(exitcode):
+        print(step+ 'completed successfully.... moving on.\n')
+        touch(step+'.done')
+        sys.stdout.flush()
+    else:
+        quit_and_explain(step+' failed... exiting....\n')
+
+def dostep(step, continefrom, passdonesteps):
+    n = int(step.split('_')[1])
+    if continuefrom > 1: # User indicated a step to force continue from.
+        print("\nContinue from Step" + str(continuefrom) + " selected.")
+        if n >= continuefrom:
+            print(step + " is >= " + str(continuefrom) + ", so GALA will perform this step.\n")
+            return True
+        else:
+            print(step + " is < " + str(continuefrom) + ", so GALA will NOT perform this step.\n")
+            return False
+    elif passdonesteps: # Continue from left as 1, perhaps user wanted GALA to find last successful step. 
+        print("\nContinue selected: steps w/o progress touch files will be performed.")
+        touchfile = PROGDIR + "/" + step + '.done'
+        if os.path.isfile( touchfile ):
+            print("Found " + touchfile + "\nTherefore, GALA skipping " + step + " ...\n")
+            return False
+        else:
+            print("Touchfile for " + step + " Not Found.\nTherefore, GALA will perform this step ...\n")
+            return True
+    else:	## continuefrom == 1 and passdonesteps==False ; do the step... it ought to start at Step1, and allow all subsequent steps to run.
+        print("\nGALA performing " + step + " ....\n")
+        return True
 
 ##########################################################################################################################
 ##########################################################################################################################
@@ -196,56 +262,77 @@ workdir=os.getcwd()
 ##########################################################################################################################
 ## 1. Use the comp module to generate a draft_comparison file.
 ##########################################################################################################################
-comp_generator(genomes=draft_names,
-               output=workdir,
-               mm2params=extraMM2parameters_asms)
-op=''.join(list(open('draft_comp.sh')))
-op=op.replace('comparison','preliminary_comparison')
-om=open('draft_comp.sh','w')
-om.writelines(op)
-om.close()
+if dostep('Step_1', continuefrom, passdonesteps):
+    sys.stdout.flush()
+    comp_generator(genomes=draft_names,
+                   output=workdir,
+                   mm2params=extraMM2parameters_asms)
+    op=''.join(list(open('draft_comp.sh')))
+    op=op.replace('comparison','preliminary_comparison')
+    om=open('draft_comp.sh','w')
+    om.writelines(op)
+    om.close()
+
+    # DONE ; Quit if exitcode non-zero; make touch file otherwise ; TODO: come up with check here.
+    assess_progress(0, 'Step_1')
+
 
 ##########################################################################################################################
 ## 2. Run draft_comparison file to produce drafts comparison paf files.
 ##########################################################################################################################
-os.system('sh draft_comp.sh')
-path_to_paf='preliminary_comparison'
+if dostep('Step_2', continuefrom, passdonesteps):
+    sys.stdout.flush()
+    exitcode = os.system('sh draft_comp.sh')
+    path_to_paf='preliminary_comparison'
+    
+    ## Quit if exitcode non-zero; make touch file otherwise
+    assess_progress(exitcode, 'Step_2')
+
 
 
 ##########################################################################################################################
 ## 3. Use the mdm module to identify mis-assembled contigs.
 ##########################################################################################################################
-number_of_drafts=''.join(list(open(draft_names))).count('=')
+if dostep('Step_3', continuefrom, passdonesteps):
+    sys.stdout.flush()
+    number_of_drafts=''.join(list(open(draft_names))).count('=')
 
-cut_gathering(path=path_to_paf,
-              number_of_drafts=number_of_drafts,
-              block=block,
-              percentage=percent,
-              shortage_contig=contig,
-              quality=qty,
-              out_file=True,
-              out_name=name,
-              out_path=workdir,
-              cut_block=cutblock,
-              threshold=threshold,
-              threshold_value=threshold_value,
-              diff_1=diff_1,
-              diff_2=diff_2,
-              diff_3=diff_3)
+    cut_gathering(path=path_to_paf,
+                  number_of_drafts=number_of_drafts,
+                  block=block,
+                  percentage=percent,
+                  shortage_contig=contig,
+                  quality=qty,
+                  out_file=True,
+                  out_name=name,
+                  out_path=workdir,
+                  cut_block=cutblock,
+                  threshold=threshold,
+                  threshold_value=threshold_value,
+                  diff_1=diff_1,
+                  diff_2=diff_2,
+                  diff_3=diff_3)
+
+    ## TODO: come up with success-check for this step
+    assess_progress(0, 'Step_3')
 
 ##########################################################################################################################
 ## 4. Use the newgenome module to Produce misassembly-free drafts. :: gala_results/new_genomes/new_draft_names_paths.txt is made here.
 ##########################################################################################################################
-try:
-    os.mkdir('new_genomes')
-except:
-    pass
-genomes(genomes=draft_names, 
-        gathering=os.path.join(workdir,name), 
-        gathering_name=name, 
-        outpath=workdir+'/new_genomes')
-new_path=workdir+'/'+'new_genomes/'
-
+if dostep('Step_4', continuefrom, passdonesteps):
+    sys.stdout.flush()
+    try:
+        os.mkdir('new_genomes')
+    except:
+        pass
+    genomes(genomes=draft_names, 
+            gathering=os.path.join(workdir,name), 
+            gathering_name=name, 
+            outpath=workdir+'/new_genomes')
+    new_path=workdir+'/'+'new_genomes/'
+    
+    ## TODO: come up with success-check for this step
+    assess_progress(0, 'Step_4')
 
 
 ##########################################################################################################################
@@ -263,46 +350,63 @@ new_path=workdir+'/'+'new_genomes/'
 ##########################################################################################################################
 ## 5. Use the comp module to generate a draft_comparison file for misassembly-free drafts.
 ##########################################################################################################################
-try:
-    os.mkdir('gap_free_comp')
-except:
-    pass
+if dostep('Step_5', continuefrom, passdonesteps):
+    sys.stdout.flush()
+    try:
+        os.mkdir('gap_free_comp')
+    except:
+        pass
 
-outpath=workdir+'/gap_free_comp'
+    outpath=workdir+'/gap_free_comp'
 
-comp_generator(genomes=new_path+'new_draft_names_paths.txt', 
-               output=outpath,
-               mm2params=extraMM2parameters_asms)
-new_path=outpath
-os.chdir(outpath)
+    comp_generator(genomes=new_path+'new_draft_names_paths.txt', 
+                   output=outpath,
+                   mm2params=extraMM2parameters_asms)
+
+    new_path=outpath
+    os.chdir(outpath)
+    print("\nStep 5 : changedir : " + outpath + "\n")
+
+    ## TODO: come up with success-check for this step
+    assess_progress(0, 'Step_5')
 
 
 ##########################################################################################################################
 ## 6. Run draft_comparison file to produce new drafts comparison paf files.
 ##########################################################################################################################
-os.system('sh draft_comp.sh')
-path_to_drafts='comparison'
+if dostep('Step_6', continuefrom, passdonesteps):
+    sys.stdout.flush()
+    exitcode = os.system('sh draft_comp.sh')
+    path_to_drafts='comparison'
 
+    ## Quit if exitcode non-zero; make touch file otherwise
+    assess_progress(exitcode, 'Step_6')
 
 ##########################################################################################################################
 ## 7. Run the ccm module to produce contigs scaffolding groups.
 ##########################################################################################################################
-scaffolding(path='comparison',
-            number_of_drafts=number_of_drafts,
-            block=block,
-            percentage=percent,
-            shortage_contig=contig,
-            quality=qty,
-            out_file=True,
-            output_name=name,
-            output=outpath,
-            diff_1=diff_1,
-            diff_2=diff_2,
-            diff_3=diff_3)
-new_path=output+'/'+'new_genomes/'
-os.chdir(workdir+'/new_genomes')
+if dostep('Step_7', continuefrom, passdonesteps):
+    sys.stdout.flush()
+    scaffolding(path='comparison',
+                number_of_drafts=number_of_drafts,
+                block=block,
+                percentage=percent,
+                shortage_contig=contig,
+                quality=qty,
+                out_file=True,
+                output_name=name,
+                output=outpath,
+                diff_1=diff_1,
+                diff_2=diff_2,
+                diff_3=diff_3)
+    new_path=output+'/'+'new_genomes/'
 
-
+    CD = workdir+'/new_genomes'
+    os.chdir( CD )
+    print("\nStep 7 : changedir : " + CD + "\n")
+    
+    ## TODO: come up with success-check for this step
+    assess_progress(0, 'Step_7')
 
 ##########################################################################################################################
 ##########################################################################################################################
@@ -323,43 +427,64 @@ os.chdir(workdir+'/new_genomes')
 ## 8. Map all drafts against raw long reads and self-corrected reads if available.
 ##########################################################################################################################
 
-## BWA INDEXING
-if not args.fastmode:
-    os.system('for i in *.fa; do bwa index $i; done')
-
-## change dir
-os.chdir(workdir)
-
-## SET UP FOR BWA (or MM2) MAPPING
-try:
-    os.mkdir('mapping')
-except:
-    pass
-
-mapping=list(open('new_genomes/new_draft_names_paths.txt'))
-for i in mapping:
-    dirname=i.strip().split('=')[0]
-    os.system('mkdir -p mapping/'+dirname)
-
-## Perform read mapping.
-for i in mapping:
-    dirname=i.strip().split('=')[0]
-    genomdir=i.strip().split('=')[1]
-    SAMPIPE=''.join(['| samtools sort | samtools view -Sb > mapping/', dirname, '/mapping.bam'])
-    SAMIDXCMD=' '.join(['samtools index mapping/', dirname, '/mapping.bam'])
-    ## GET MAPPING COMMAND (MAPCMD)
+if dostep('Step_8', continuefrom, passdonesteps):
+    sys.stdout.flush()
+    ## BWA INDEXING
     if not args.fastmode:
-        ## USE BWA
-        MAPCMD=' '.join(['bwa mem', extraBWAparameters, genomdir, reads, SAMPIPE])
-        #os.system('bwa mem '+genomdir+' '+reads+'| samtools sort | samtools view -Sb > mapping/'+dirname+'/mapping.bam')
-        #os.system('samtools index mapping/'+dirname+'/mapping.bam')
-    else:
-        ## Use Minimap2
-        MAPCMD=' '.join(['minimap2 -x asm5', extraBWAparameters_reads, genomdir, reads, SAMPIPE])
+        CMD = 'for i in *.fa; do bwa index $i; done'
+        print("\n" + CMD + "\n")
+        exitcode = os.system(CMD)
+    
+        ## Quit if exitcode non-zero; make touch file otherwise
+        assess_progress(exitcode, 'Step_8_bwaidx')
 
-    ## EXECUTE
-    os.system(MAPCMD)
-    os.system(SAMIDXCMD)
+    ## change dir
+    os.chdir(workdir)
+    print("\nStep 8 : changedir : " + workdir + "\n")
+
+    ## SET UP FOR BWA (or MM2) MAPPING
+    try:
+        os.mkdir('mapping')
+    except:
+        pass
+
+    mapping=list(open('new_genomes/new_draft_names_paths.txt'))
+    for i in mapping:
+        dirname=i.strip().split('=')[0]
+        os.system('mkdir -p mapping/'+dirname)
+
+    ## Perform read mapping.
+    for i in mapping:
+        dirname=i.strip().split('=')[0]
+        genomdir=i.strip().split('=')[1]
+        ##SAMPIPE=''.join(['| samtools sort | samtools view -Sb > mapping/', dirname, '/mapping.bam'])
+        ## Default output of samtools sort is already BAM; also above command lacked -h flag, so header was missing.
+        SAMPIPE=''.join(['| samtools sort > mapping/', dirname, '/mapping.bam'])
+        SAMIDXCMD=' '.join(['samtools index mapping/', dirname, '/mapping.bam'])
+        ## GET MAPPING COMMAND (MAPCMD)
+        if not args.fastmode:
+            ## USE BWA
+            MAPCMD=' '.join(['bwa mem', extraBWAparameters, genomdir, reads, SAMPIPE])
+            #os.system('bwa mem '+genomdir+' '+reads+'| samtools sort | samtools view -Sb > mapping/'+dirname+'/mapping.bam')
+            #os.system('samtools index mapping/'+dirname+'/mapping.bam')
+        else:
+            ## Use Minimap2
+            ##MAPCMD=' '.join(['minimap2 -x asm5', extraMM2parameters_reads, genomdir, reads, SAMPIPE])
+            MAPCMD=' '.join(['minimap2', extraMM2parameters_reads, genomdir, reads, SAMPIPE])
+
+        ## EXECUTE
+        print("\n" + MAPCMD + "\n")
+        exitcode = os.system(MAPCMD)
+        
+        ## Quit if exitcode non-zero; make touch file otherwise
+        assess_progress(exitcode, 'Step_8_mapping')
+
+        print("\n" + SAMIDXCMD + "\n")
+        exitcode = os.system(SAMIDXCMD)
+
+        ## Quit if exitcode non-zero; make touch file otherwise
+        assess_progress(exitcode, 'Step_8')
+
 
 
 ##########################################################################################################################
@@ -371,81 +496,135 @@ for i in mapping:
 ##	for i in bams/*; do samtools view $i | cut -f 1 > $i.read_names;done;
 ##########################################################################################################################
 
+if dostep('Step_9', continuefrom, passdonesteps):
+    sys.stdout.flush()
+    new_path=workdir+'/'+'mapping/'
+    #os.chdir(workdir+'/mapping')
+    os.chdir(new_path)
+    print("\nStep 9 : changedir : " + new_path + "\n")
 
-new_path=workdir+'/'+'mapping/'
-os.chdir(workdir+'/mapping')
-for i in mapping:
-    dirname=i.split('=')[0]
-    os.chdir(new_path+dirname)
-    os.system('samtools view -H mapping.bam| grep SQ|cut -f 2|cut -d : -f 2 > contig_names')
+    for i in mapping:
+        dirname=i.split('=')[0]
 
-for i in mapping:
-    dirname=i.split('=')[0]
-    bam_seprator(contig_name=new_path+dirname+'/contig_names',bam_file=new_path+dirname+'/mapping.bam',out_put_path=new_path+dirname)
-    os.chdir(new_path+dirname)
-    os.system('sh bam_seprator.sh')
-    os.chdir(new_path+dirname+'/bams')
-    os.system('for i in *; do samtools view $i | cut -f 1 > $i.read_names;done;')
+        if dostep('Step_9_contignames_'+dirname, continuefrom, passdonesteps):
+            WD = new_path+dirname
+            print("\nStep 9 : WD : " + WD )
+            os.chdir(WD)
+            CMD = 'samtools view -H mapping.bam | grep SQ | cut -f 2 | cut -d : -f 2 > contig_names'
+            print("\n" + CMD + "\n")
+            exitcode = os.system(CMD)
+        
+            ## Quit if exitcode non-zero; make touch file otherwise
+            assess_progress(exitcode, 'Step_9_contignames_'+dirname)
 
+    for i in mapping:
+        dirname=i.split('=')[0]
+        print("\nStep 9 : bam_seprator : " + dirname + " \n") 
+        sys.stdout.flush()
 
+        bam_seprator(contig_name=new_path+dirname+'/contig_names',
+                     bam_file=new_path+dirname+'/mapping.bam',
+                     out_put_path=new_path+dirname)
 
+        os.chdir(new_path+dirname)
+
+        if dostep('Step_9_shbamseprator_'+dirname, continuefrom, passdonesteps):
+            exitcode = os.system('sh bam_seprator.sh')
+
+            ## Quit if exitcode non-zero; make touch file otherwise
+            assess_progress(exitcode, 'Step_9_shbamseprator_'+dirname)
+
+        if dostep('Step_9_readnames_'+dirname, continuefrom, passdonesteps):
+            WD = new_path+dirname+'/bams'
+            os.chdir(WD)
+            print("\nStep 9 : WD : " + WD )
+            CMD = 'for i in * ; do samtools view $i | cut -f 1 > $i.read_names ; done ;'
+            print("\n" + CMD + "\n")
+            exitcode = os.system('for i in *; do samtools view $i | cut -f 1 > $i.read_names;done;')
+
+            ## Quit if exitcode non-zero; make touch file otherwise
+            assess_progress(exitcode, 'Step_9_readnames_'+dirname)
+
+    ## Quit if exitcode non-zero; make touch file otherwise
+    assess_progress(0, 'Step_9')
 
 
 ##########################################################################################################################
 ## 10. Use the cat command to concatenate read name files belongs to the same scaffolding group.
 ##########################################################################################################################
-dirnames=[]
-for i in mapping:
-    dirnames.append(i.split('=')[0])
-scaffs=os.path.join(outpath,name)
-li=os.listdir(scaffs)
+if dostep('Step_10', continuefrom, passdonesteps):
+    sys.stdout.flush()
+    print("\nStep 10 : CWD : " + os.getcwd() + "\n")
 
-ok={}
-for i in dirnames:
-    ok[i]={}
-for base in dirnames:
-    op=list(open(scaffs+'/'+name+'_'+base+'.scaff'))
-    oa=open(new_path+base+'/scaffolds','w')
-    oa.writelines('cd bams\n')
-    nn=1
-    for bas in op:
-        if bas[:6]=='scaff_':
-            rr=bas.split('\t')
-            rmn=rr[-2]
-            rr=rr[:-2]
-            rr='\t'.join(rr[1:]).replace('\n','')
-            rr=rr.replace('\t','.bam.read_names ')
-            rr='cat '+rr+'.bam.read_names > ../scaffold_'+str(nn)+'.read_names\n'
-            ok[base]['scaffold_'+str(nn)]=str(rmn).replace('\n','')
-            oa.writelines(rr)
-            nn=nn+1
-    oa.close()
+    dirnames=[]
+    for i in mapping:
+        dirnames.append(i.split('=')[0])
 
+    scaffs=os.path.join(outpath,name)
+    li=os.listdir(scaffs)
+
+    ok={}
+    for i in dirnames:
+        ok[i]={}
+
+    for base in dirnames:
+        op=list(open(scaffs+'/'+name+'_'+base+'.scaff'))
+        oa=open(new_path+base+'/scaffolds','w')
+        oa.writelines('cd bams\n')
+        nn=1
+        for bas in op:
+            if bas[:6]=='scaff_':
+                rr=bas.split('\t')
+                rmn=rr[-2]
+                rr=rr[:-2]
+                rr='\t'.join(rr[1:]).replace('\n','')
+                rr=rr.replace('\t','.bam.read_names ')
+                rr='cat '+rr+'.bam.read_names > ../scaffold_'+str(nn)+'.read_names\n'
+                ok[base]['scaffold_'+str(nn)]=str(rmn).replace('\n','')
+                oa.writelines(rr)
+                nn=nn+1
+        oa.close()
+
+    ## TODO: come up with success-check for this step
+    assess_progress(0, 'Step_10')
 
 ##########################################################################################################################
 ## 11. Use the readsep Module to separate each scaffold correlated-reads.
 ##########################################################################################################################
+if dostep('Step_11', continuefrom, passdonesteps):
+    print("\nStep 11 : CWD : " + os.getcwd() + "\n")
+    sys.stdout.flush()
+    for i in dirnames:
+        os.chdir(os.path.join(new_path,i))
+        exitcode = os.system('sh scaffolds')
 
-for i in dirnames:
-    os.chdir(os.path.join(new_path,i))
-    os.system('sh scaffolds')
-    mm=list(open('scaffolds'))[1:]
-    for base in mm:
-        mn=base.split(' > ../')[-1].replace('\n','')
-        read_extract(reads,mn,input_file)
+        ## Quit if exitcode non-zero; make touch file otherwise
+        assess_progress(exitcode, 'Step_11_scaffolds' + i )
 
+        mm=list(open('scaffolds'))[1:]
+
+        for base in mm:
+            mn=base.split(' > ../')[-1].replace('\n','')
+            read_extract(reads, mn, input_file)
+
+    ## TODO: come up with success-check for this step
+    assess_progress(0, 'Step_11')
 
 ##########################################################################################################################
 ## 12. Implement Chromosome-by-Chromosome assembly approach to retrieve the gap-free chromosome-scale assembly by
 ##########################################################################################################################
-
+## NOT PUTTING AN IF_DOSTEP HERE FOR NOW: in the majority of circumstances, the user will not be intending to skip the entire pipeline.
+print("\nStep 12 : CWD : " + os.getcwd() + "\n")
+sys.stdout.flush()
 
 ## WRITE SCRIPT FOR ASSEMBLIES
 
 if 'canu' in assembler:
     for i in dirnames:
         rmn=open(new_path+i+'/assembly_c.sh','w')
-        os.chdir(os.path.join(new_path,i))
+        CD = os.path.join(new_path,i)
+        os.chdir( CD )
+        print("\nStep12 : canu loop : changedir : " + CD + "\n")
         mm=list(open('scaffolds'))[1:]
         for base in mm:
             mn = base.split(' > ../')[-1].replace('.read_names\n','.read.fq')
@@ -455,11 +634,14 @@ if 'canu' in assembler:
             CANUCMD = ' '.join(['canu -p canu_', px, ' -d canu_', px, extraCANUparameters, 'genomeSize=', gs+'m', '-'+platform, npimn])
             #rmn.writelines('canu -p canu_'+mn.replace('.read.fq','')+ ' -d canu_'+mn.replace('.read.fq','')+' genomeSize='+str(int(ok[i][mn.replace('.read.fq','')])/1000000)+ 'm -' +platform+' '+new_path+i+'/'+mn+'\n')
             rmn.writelines(CANUCMD+'\n')
+            print(CANUCMD+"\n")
 
 if 'flye' in assembler:
     for i in dirnames:
         rmn=open(new_path+i+'/assembly_f.sh','w')
-        os.chdir(os.path.join(new_path,i))
+        CD = os.path.join(new_path,i)
+        os.chdir( CD )
+        print("\nStep12	: Flye loop : changedir	: " + CD + "\n")
         mm=list(open('scaffolds'))[1:]
         for base in mm:
             mn=base.split(' > ../')[-1].replace('.read_names\n','.read.fq')
@@ -472,12 +654,15 @@ if 'flye' in assembler:
             rmn.writelines('cd ' + cddir + '\n')
             rmn.writelines('mkdir -p flye_'+ px + '\n')
             rmn.writelines('cd flye_' + px + '\n')
-            rmn.writelines(FLYCMD+'\n')
+            rmn.writelines(FLYECMD+'\n')
+            print(FLYECMD+"\n")
 
 if 'miniasm' in assembler:
     for i in dirnames:
         rmn=open(new_path+i+'/assembly_m.sh','w')
-        os.chdir(os.path.join(new_path,i))
+        CD = os.path.join(new_path,i)
+        os.chdir( CD )
+        print("\nStep12 : Miniasm loop : changedir : " + CD + "\n")
         mm=list(open('scaffolds'))[1:]
         for base in mm:
             mn=base.split(' > ../')[-1].replace('.read_names\n','.read.fq')
@@ -499,17 +684,20 @@ if 'miniasm' in assembler:
             rmn.writelines(MACMD+'\n')
             rmn.writelines("awk " + "'/^S/{print " + '">"$2"\\n"$3}' + "' " + GFA + ' > ' + FA + '\n')
             rmn.writelines(FLYEPOLCMD+'\n')
-
+            print(MM2CMD + "\n" + MACMD + "\n" + FLYEPOLCMD + "\n")
 
 ## EXECUTE ASSEMBLIES
 os.chdir(workdir)
+print("\nStep12 : EXECUTE : changedir : " + workdir + "\n")
 
 try:
     os.mkdir('chr_by_chr')
 except:
     pass
 
-os.chdir(workdir+'/chr_by_chr')
+CD = workdir+'/chr_by_chr'
+os.chdir(CD)
+print("\nStep12 : EXECUTE : changedir : " + CD + "\n")
 
 for i in mapping:
     dirname=i.split('=')[0]
@@ -517,8 +705,13 @@ for i in mapping:
         os.mkdir(workdir+'/chr_by_chr/'+dirname)
     except:
         pass
-    os.chdir(workdir+'/chr_by_chr/'+dirname)
-    os.system('sh '+new_path+dirname+'/assembly_*.sh')
+    CD = workdir+'/chr_by_chr/'+dirname
+    os.chdir( CD )
+    print("\nStep12 : EXECUTION LOOP : changedir : " + CD)
+
+    CMD = 'sh '+new_path+dirname+'/assembly_*.sh'
+    print(CMD+"\n")
+    os.system(CMD)
 
 
 

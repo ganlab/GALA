@@ -1,4 +1,20 @@
 ###############################################################################################################
+JohnUrban Fork Second Commit - 20221006 6:50pm EST
+###############################################################################################################
+1. GALA/gala was again majorly updated:
+	- Arguments were added:
+		- Can resume from undone steps (--resume)
+		- Can force continue from a specific step (--continue_from)
+	- A few new helper functions added, and used to:
+		- --resume or --continue_from
+		- making touch files when steps complete successfully
+		- giving Step-specific error message when a step fails, and then quitting. 
+	- There is a lot more message printing to keep user aware of where in the pipeline GALA is, and to better capture where errors occur when they do.
+	- There is more printing of commands being used to help confirm commands make sense.
+	- There is sys.stdout.flush() statements to help keep the output messaging in sync with where GALA is in the pipeline.
+	- Overall, more control over the pipeline and more QC over the steps.
+
+###############################################################################################################
 JohnUrban Fork Second Commit - 20221005 1:55pm EST
 ###############################################################################################################
 1. README.md updated to display new options.
