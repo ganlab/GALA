@@ -1,5 +1,5 @@
 ###############################################################################################################
-JohnUrban Fork Second Commit - 20221006 6:50pm EST
+JohnUrban Fork Third/Fourth/Fifth Commit - 20221006 6:50pm EST
 ###############################################################################################################
 1. GALA/gala was again majorly updated:
 	- Arguments were added:
@@ -13,6 +13,8 @@ JohnUrban Fork Second Commit - 20221006 6:50pm EST
 	- There is more printing of commands being used to help confirm commands make sense.
 	- There is sys.stdout.flush() statements to help keep the output messaging in sync with where GALA is in the pipeline.
 	- Overall, more control over the pipeline and more QC over the steps.
+2. Updated README w/ new options
+3. Small update to src/comp_generator.py - echo statement to create more white space between minimap2 runs.
 
 ###############################################################################################################
 JohnUrban Fork Second Commit - 20221005 1:55pm EST

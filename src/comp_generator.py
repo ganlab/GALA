@@ -60,4 +60,4 @@ def comp_generator(genomes, output=os.getcwd(), mm2params=""):
                 ### mm2params allows threading options (and perhaps others in the future).
                 OUT=''.join([base, 'vs', ba, '.paf'])
                 CMD=' '.join(['minimap2 -x asm5', mm2params, a[base], a[ba], '>', OUT])	## TO AVOID REPEATED CMD EDITNG IN ECHO AND ACTIVE VERSIONS.
-                b.writelines('echo "' + CMD + '"\n' + CMD + '\n')
+                b.writelines('echo "' + CMD + '"\n' + CMD + '\necho\n\n')
