@@ -57,25 +57,36 @@ For sequencing_platform the user needs to provide it in this way:
 ```
 usage: gala -h  [options] <draft_names & paths> <fa/fq> <reads> <platform>
 
-GALA Gap-free Long-read Assembler
+GALA Gap-free Long-reads Assembler
 
 positional arguments:
   draft_names           Draft names and paths [required]
   input_file            input type (fq/fa) [required]
   reads                 raw/corrected reads [required]
-  sequencing_platform   -pacbio-raw -pacbio-corrected -nanopore-raw -nanopore-
-                        corrected [required]
+  sequencing_platform   pacbio-raw pacbio-corrected nanopore-raw nanopore-corrected [required]
 
 optional arguments:
   -h, --help            show this help message and exit
   -a [ASSEMBLER [ASSEMBLER ...]]
-                        Chr-by_Chr assembler (canu flye miniasm) [default
-                        canu]
+                        Chr-by_Chr assembler (canu flye miniasm) [default canu]
   -b Alignment block length	 [default 5000]
   -p Alignment identity percentage	 [default 70%]
+  -l lowest number of misassemblies indecator	 [default 1]
   -c Shortest contig length	 [default 5000]
+  -k Mis-assembly block	 [default 175]
+			It is better to extend the misassembly block in case of
+			unpolished assemblies or expected mis-assemblies
+			in highly repetative regions (5000-10000)
   -q Mapping quality	 [default 20]
   -f Output files name	[default gathering]
+  -t cut on a threshold passed by -u	[default False]
+  -u threshold cut value	[default 3]
+  --cut1 The length of the smallest discordance on contigs of length >= 1000000  	[default 50000]
+		 Be very careful with this parameter
+  --cut2 The length of the smallest discordance on contigs of length >= 100000  	[default 25000]
+		 Be very careful with this parameter
+  --cut3 The length of the smallest discordance on contigs of length >= 5000  	[default 15000]
+		 Be very careful with this parameter
   -o output files path	[default current directory]
   -v, --version         show program's version number and exit
 
@@ -83,6 +94,13 @@ optional arguments:
   JohnUrbanFork-specific options
   --threads THREADS     Number of threads to use with Minimap2 and BWA.
   --fastmode            Use Minimap2 for read-mapping steps instead of BWA.
+  --resume              GALA will look for last successfully completed step, and continue (resume). It will redo any steps along pipeline that do not have Step_xxx.done touch files...
+  --continue_from CONTINUE_FROM
+                        GALA will look try to start from step specified: 1 = Beginning of the pipeline (generating draft_compare.sh script to run). 2 = Running draft_compare.sh. 3 = Identify mis-
+                        assembled contigs. 4 = Produce misassembly-free drafts. 5 = Generate script to compare the misassembly-free drafts. 6 = Run draft_comparison file to produce new drafts
+                        comparison paf files. 7 = Run the ccm module to produce contigs scaffolding groups. 8 = Map all drafts against raw long reads and self-corrected reads if available. 9 =
+                        Separate the read names mapped to each contig. 10 = Concatenate read name files belongs to the same scaffolding group. 11 = Use the readsep Module to separate each scaffold
+                        correlated-reads. 12 = Run assemblies.
   --hifi                Use this flag if long read data is >99 pct accuracy on average. Default : assumes false. Affects some paramter choices. Typically for PacBioHiFi, but perhaps can work with
                         Nanopore Q20/Q30 chemistry (avg accuracy >99 pct).
   --sac                 Use this flag if nanopore data is >90-95 pct accuracy on average (e.g. super accurate basecalling mode, SAC). Default : assumes false. Affects some paramter choices. See:
