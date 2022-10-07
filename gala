@@ -461,7 +461,7 @@ if dostep('Step_8', continuefrom, passdonesteps):
         ##SAMPIPE=''.join(['| samtools sort | samtools view -Sb > mapping/', dirname, '/mapping.bam'])
         ## Default output of samtools sort is already BAM; also above command lacked -h flag, so header was missing.
         SAMPIPE=''.join(['| samtools sort > mapping/', dirname, '/mapping.bam'])
-        SAMIDXCMD=' '.join(['samtools index mapping/', dirname, '/mapping.bam'])
+        SAMIDXCMD=''.join(['samtools index mapping/', dirname, '/mapping.bam'])
         ## GET MAPPING COMMAND (MAPCMD)
         if not args.fastmode:
             ## USE BWA
