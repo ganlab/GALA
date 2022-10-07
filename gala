@@ -433,6 +433,7 @@ if dostep('Step_8', continuefrom, passdonesteps):
     if not args.fastmode:
         CMD = 'for i in *.fa; do bwa index $i; done'
         print("\n" + CMD + "\n")
+        sys.stdout.flush()
         exitcode = os.system(CMD)
     
         ## Quit if exitcode non-zero; make touch file otherwise
@@ -469,17 +470,19 @@ if dostep('Step_8', continuefrom, passdonesteps):
             #os.system('samtools index mapping/'+dirname+'/mapping.bam')
         else:
             ## Use Minimap2
-            ##MAPCMD=' '.join(['minimap2 -x asm5', extraMM2parameters_reads, genomdir, reads, SAMPIPE])
-            MAPCMD=' '.join(['minimap2', extraMM2parameters_reads, genomdir, reads, SAMPIPE])
+            ##MAPCMD=' '.join(['minimap2 -a -x asm5', extraMM2parameters_reads, genomdir, reads, SAMPIPE])
+            MAPCMD=' '.join(['minimap2 -a', extraMM2parameters_reads, genomdir, reads, SAMPIPE])
 
         ## EXECUTE
         print("\n" + MAPCMD + "\n")
+        sys.stdout.flush()
         exitcode = os.system(MAPCMD)
         
         ## Quit if exitcode non-zero; make touch file otherwise
         assess_progress(exitcode, 'Step_8_mapping')
 
         print("\n" + SAMIDXCMD + "\n")
+        sys.stdout.flush()
         exitcode = os.system(SAMIDXCMD)
 
         ## Quit if exitcode non-zero; make touch file otherwise
@@ -512,6 +515,7 @@ if dostep('Step_9', continuefrom, passdonesteps):
             os.chdir(WD)
             CMD = 'samtools view -H mapping.bam | grep SQ | cut -f 2 | cut -d : -f 2 > contig_names'
             print("\n" + CMD + "\n")
+            sys.stdout.flush()
             exitcode = os.system(CMD)
         
             ## Quit if exitcode non-zero; make touch file otherwise
@@ -526,9 +530,14 @@ if dostep('Step_9', continuefrom, passdonesteps):
                      bam_file=new_path+dirname+'/mapping.bam',
                      out_put_path=new_path+dirname)
 
-        os.chdir(new_path+dirname)
+        CD = new_path+dirname
+        os.chdir( CD )
+        print("\nStep 9 : changedir : " + CD + "\n")
+
 
         if dostep('Step_9_shbamseprator_'+dirname, continuefrom, passdonesteps):
+            print('Step_9 : sh bam_seprator.sh : ' + dirname + '\n')
+            sys.stdout.flush()
             exitcode = os.system('sh bam_seprator.sh')
 
             ## Quit if exitcode non-zero; make touch file otherwise
@@ -594,8 +603,12 @@ if dostep('Step_10', continuefrom, passdonesteps):
 if dostep('Step_11', continuefrom, passdonesteps):
     print("\nStep 11 : CWD : " + os.getcwd() + "\n")
     sys.stdout.flush()
+
     for i in dirnames:
-        os.chdir(os.path.join(new_path,i))
+        CD = os.path.join(new_path,i)
+        os.chdir( CD )
+        print("\nStep 11 : sh scaffolds : changedir : " + CD + "\n")
+        sys.stdout.flush()
         exitcode = os.system('sh scaffolds')
 
         ## Quit if exitcode non-zero; make touch file otherwise
@@ -605,6 +618,8 @@ if dostep('Step_11', continuefrom, passdonesteps):
 
         for base in mm:
             mn=base.split(' > ../')[-1].replace('\n','')
+            print("\nStep 11 : read_extract : \n\t reads : " + reads + "\n\t mn : " + mn + "\n\t input_file : " + input_file + "\n")
+            sys.stdout.flush()
             read_extract(reads, mn, input_file)
 
     ## TODO: come up with success-check for this step
@@ -625,6 +640,7 @@ if 'canu' in assembler:
         CD = os.path.join(new_path,i)
         os.chdir( CD )
         print("\nStep12 : canu loop : changedir : " + CD + "\n")
+        sys.stdout.flush()
         mm=list(open('scaffolds'))[1:]
         for base in mm:
             mn = base.split(' > ../')[-1].replace('.read_names\n','.read.fq')
@@ -635,6 +651,7 @@ if 'canu' in assembler:
             #rmn.writelines('canu -p canu_'+mn.replace('.read.fq','')+ ' -d canu_'+mn.replace('.read.fq','')+' genomeSize='+str(int(ok[i][mn.replace('.read.fq','')])/1000000)+ 'm -' +platform+' '+new_path+i+'/'+mn+'\n')
             rmn.writelines(CANUCMD+'\n')
             print(CANUCMD+"\n")
+            sys.stdout.flush()
 
 if 'flye' in assembler:
     for i in dirnames:
@@ -642,6 +659,7 @@ if 'flye' in assembler:
         CD = os.path.join(new_path,i)
         os.chdir( CD )
         print("\nStep12	: Flye loop : changedir	: " + CD + "\n")
+        sys.stdout.flush()
         mm=list(open('scaffolds'))[1:]
         for base in mm:
             mn=base.split(' > ../')[-1].replace('.read_names\n','.read.fq')
@@ -656,6 +674,7 @@ if 'flye' in assembler:
             rmn.writelines('cd flye_' + px + '\n')
             rmn.writelines(FLYECMD+'\n')
             print(FLYECMD+"\n")
+            sys.stdout.flush()
 
 if 'miniasm' in assembler:
     for i in dirnames:
@@ -663,6 +682,7 @@ if 'miniasm' in assembler:
         CD = os.path.join(new_path,i)
         os.chdir( CD )
         print("\nStep12 : Miniasm loop : changedir : " + CD + "\n")
+        sys.stdout.flush()
         mm=list(open('scaffolds'))[1:]
         for base in mm:
             mn=base.split(' > ../')[-1].replace('.read_names\n','.read.fq')
@@ -685,10 +705,12 @@ if 'miniasm' in assembler:
             rmn.writelines("awk " + "'/^S/{print " + '">"$2"\\n"$3}' + "' " + GFA + ' > ' + FA + '\n')
             rmn.writelines(FLYEPOLCMD+'\n')
             print(MM2CMD + "\n" + MACMD + "\n" + FLYEPOLCMD + "\n")
+            sys.stdout.flush()
 
 ## EXECUTE ASSEMBLIES
 os.chdir(workdir)
 print("\nStep12 : EXECUTE : changedir : " + workdir + "\n")
+sys.stdout.flush()
 
 try:
     os.mkdir('chr_by_chr')
@@ -698,6 +720,7 @@ except:
 CD = workdir+'/chr_by_chr'
 os.chdir(CD)
 print("\nStep12 : EXECUTE : changedir : " + CD + "\n")
+sys.stdout.flush()
 
 for i in mapping:
     dirname=i.split('=')[0]
@@ -708,9 +731,9 @@ for i in mapping:
     CD = workdir+'/chr_by_chr/'+dirname
     os.chdir( CD )
     print("\nStep12 : EXECUTION LOOP : changedir : " + CD)
-
     CMD = 'sh '+new_path+dirname+'/assembly_*.sh'
     print(CMD+"\n")
+    sys.stdout.flush()
     os.system(CMD)
 
 
@@ -719,5 +742,6 @@ for i in mapping:
 
 
 ## VERSION
+sys.stdout.flush()
 if '-v':
 	parser.parse_args(['-v'])
