@@ -200,7 +200,7 @@ os.chdir(new_dir)
 workdir=os.getcwd()
 MAINDIR=workdir
 PROGDIR=workdir + '/progress'
-os.mkdir(PROGDIR)
+os.makedirs(PROGDIR, exist_ok=True)
 
 ##########################################################################################################################
 ## HELPER FXNS
