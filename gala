@@ -795,18 +795,35 @@ sys.stdout.flush()
 
 for i in mapping:
     dirname = i.split('=')[0]
-    try:
-        os.mkdir(workdir+'/chr_by_chr/'+dirname)
-    except:
-        pass
-    CD = workdir+'/chr_by_chr/'+dirname
-    os.chdir( CD )
-    print("\nStep12 : EXECUTION LOOP : changedir : " + CD)
-    CMD = 'sh '+new_path+dirname+'/assembly_*.sh'
-    print(CMD+"\n")
-    sys.stdout.flush()
-    os.system(CMD)
+    sub_step_name = 'Step_12_sh_assembly' + dirname
 
+    if dostep(sub_step_name, continuefrom, passdonesteps):
+        try:
+            os.mkdir(workdir+'/chr_by_chr/'+dirname)
+        except:
+            pass
+    
+        CD = workdir+'/chr_by_chr/'+dirname
+        os.chdir( CD )
+
+        print("\nStep12 : EXECUTION LOOP : changedir : " + CD)
+        sys.stdout.flush()
+
+
+        ## TODO : slurmify this block (allow sh or sbatch). 
+        ## Would need to auto-delete the touch files in this loop if --slurm specified and have a touch statement in the actual assembly bash file.
+        ## Would need --tellslurm_canu --tellslurm_flye --tellslurm_flye submit options for each ; 
+        ## canu needs less b/c its autopipeline. flye and miniasm will need to be given appropriate time, mem, and threads options... 
+        ## --threads given to the assemblers would need to be consisten w/ slurm request.
+        CMD = 'sh '+new_path+dirname+'/assembly_*.sh'
+        print(CMD+"\n")
+        sys.stdout.flush()
+
+        exitcode = os.system(CMD)
+
+        ## Quit if exitcode non-zero; make touch file otherwise
+        assess_progress(exitcode, 'Step_12_sh_assembly' + i )
+        sys.stdout.flush()
 
 
 
