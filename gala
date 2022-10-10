@@ -696,7 +696,7 @@ if 'canu' in assembler:
             px = mn.replace('.read.fq','')
             gs = str(int(ok[i][px])/1000000)
             npimn = new_path + i + '/' + mn
-            CANUCMD = ' '.join(['canu -p canu_', px, ' -d canu_', px, extraCANUparameters, 'genomeSize=', gs+'m', '-'+platform, npimn])
+            CANUCMD = ' '.join(['canu -p canu_'+px, ' -d canu_'+px, extraCANUparameters, 'genomeSize='+gs+'m', '-'+platform, npimn])
             #rmn.writelines('canu -p canu_'+mn.replace('.read.fq','')+ ' -d canu_'+mn.replace('.read.fq','')+' genomeSize='+str(int(ok[i][mn.replace('.read.fq','')])/1000000)+ 'm -' +platform+' '+new_path+i+'/'+mn+'\n')
             rmn.writelines(CANUCMD+'\n')
             print(CANUCMD+"\n")
@@ -716,11 +716,11 @@ if 'flye' in assembler:
             gs=str(int(ok[i][mn.replace('.read.fq','')])/1000000)
             npimn = new_path+i+'/'+mn
             cddir=workdir+'/chr_by_chr/'+i
-            FLYECMD=' '.join(['flye --out-dir flye_', px, extraFLYEparameters, '--genome-size', gs+'m', '--'+flyeplatform, npimn])
+            FLYECMD=' '.join(['flye --out-dir flye_'+px, extraFLYEparameters, '--genome-size', gs+'m', '--'+flyeplatform, npimn])
 
             rmn.writelines('cd ' + cddir + '\n')
-            rmn.writelines('mkdir -p flye_'+ px + '\n')
-            rmn.writelines('cd flye_' + px + '\n')
+            rmn.writelines('mkdir -p flye_'+px + '\n')
+            rmn.writelines('cd flye_'+px + '\n')
             rmn.writelines(FLYECMD+'\n')
             print(FLYECMD+"\n")
             sys.stdout.flush()
