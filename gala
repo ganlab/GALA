@@ -826,9 +826,10 @@ sys.stdout.flush()
 
 
 if args.slurm:
-    SBATCH_CMD_CANU_PRE = ' '.join(['sbatch --nodes=1 --export=ALL --mem='+args.tellslurm_canu_mem, '--time='+args.tellslurm_canu_time, '--ntasks='+args.tellslurm_canu_ntasks])
-    SBATCH_CMD_FLYE_PRE = ' '.join(['sbatch --nodes=1 --export=ALL --mem='+args.tellslurm_flye_mem, '--time='+args.tellslurm_flye_time, '--ntasks='+args.tellslurm_flye_ntasks])
-    SBATCH_CMD_MINI_PRE = ' '.join(['sbatch --nodes=1 --export=ALL --mem='+args.tellslurm_miniasm_mem, '--time='+args.tellslurm_miniasm_time, '--ntasks='+args.tellslurm_miniasm_ntasks])
+    SBATCH_CMD_PRE = {}
+    SBATCH_CMD_PRE['canu'] = ' '.join(['sbatch --nodes=1 --export=ALL --mem='+args.tellslurm_canu_mem, '--time='+args.tellslurm_canu_time, '--ntasks='+args.tellslurm_canu_ntasks])
+    SBATCH_CMD_PRE['flye'] = ' '.join(['sbatch --nodes=1 --export=ALL --mem='+args.tellslurm_flye_mem, '--time='+args.tellslurm_flye_time, '--ntasks='+args.tellslurm_flye_ntasks])
+    SBATCH_CMD_PRE['miniasm'] = ' '.join(['sbatch --nodes=1 --export=ALL --mem='+args.tellslurm_miniasm_mem, '--time='+args.tellslurm_miniasm_time, '--ntasks='+args.tellslurm_miniasm_ntasks])
 
 
 
@@ -866,7 +867,7 @@ for i in mapping:
                     if args.slurm:
                         JOBNAME = '-J ' + sub_step_name
                         OUTNAME = '-o ' + 'slurm-' + sub_step_name + '-%A.out'
-                        CMD = ' '.join([SBATCH_CMD_CANU_PRE, JOBNAME, OUTNAME, SCRIPT])
+                        CMD = ' '.join([SBATCH_CMD_PRE[asmr], JOBNAME, OUTNAME, SCRIPT])
                     else:
                         CMD = 'sh ' + SCRIPT
 
