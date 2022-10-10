@@ -134,26 +134,27 @@ passdonesteps = args.resume
 
 ## ARGS REGARDING MAPPING AND ASSEMBLING
 if 'pacbio' in platform:
-    bwatype="-x pacbio"
-    mm2type="-x map-pb"
-    mm2type_asm="-x ava-pb"
+    bwatype     = "-x pacbio"
+    mm2type     = "-x map-pb"
+    mm2type_asm = "-x ava-pb"
 elif 'nanopore' in platform:
-    bwatype="-x ont2d"
-    mm2type="-x map-ont"
-    mm2type_asm="-x ava-ont"
+    bwatype     = "-x ont2d"
+    mm2type     = "-x map-ont"
+    mm2type_asm = "-x ava-ont"
 
 
 ## Flye platform (keep this above HQ updates below)
-flyeplatform=platform.replace('nanopore','nano').replace('corrected','corr')
+flyeplatform = platform.replace('nanopore','nano').replace('corrected','corr')
 
 ## Updates if high quality (HQ) settings used
 if args.hifi:
-    mm2type="-x map-hifi"
-    platform="pacbio-hifi"
-    flyeplatform="pacbio-hifi"
+    mm2type      = "-x map-hifi"
+    platform     = "pacbio-hifi"
+    flyeplatform = "pacbio-hifi"
 elif args.sac:
-    flyeplatform = flyeplatform.replace('corr','hq').replace('raw','hq') if 'nanopore' in flyeplatform else 'pacbio-corr' ## if pacbio data and --sac specified, just default to corrected pacbio params, not hifi.
-    platform="pacbio-hifi 'batOptions=-eg 0.10 -sb 0.01 -dg 2 -db 1 -dr 3'"
+    ## if pacbio data and --sac specified, just default to corrected pacbio params, not hifi.
+    flyeplatform = flyeplatform.replace('corr','hq').replace('raw','hq') if 'nano' in flyeplatform else 'pacbio-corr' 
+    platform     = "pacbio-hifi 'batOptions=-eg 0.10 -sb 0.01 -dg 2 -db 1 -dr 3'"
     if args.forcetrim:
        platform += "-untrimmed"
 
