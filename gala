@@ -238,7 +238,7 @@ def quit_and_explain(msg):
 
 def assess_progress(exitcode, step):
     if step_successful(exitcode):
-        print(step+ 'completed successfully.... moving on.\n')
+        print(step + ' completed successfully.... moving on.\n')
         touch(step+'.done')
         sys.stdout.flush()
     else:
