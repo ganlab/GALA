@@ -86,9 +86,9 @@ parser_hq.add_argument("--sac", action='store_true', default=False, help='''Use 
 parser.add_argument("--forcetrim", action='store_true', default=False, help='''Optional use with --sac option to force end trimming of reads in Canu pipeline. See: https://github.com/marbl/canu/issues/2121''')
 
 ## Additional argments to various assemblers:
-parser.add_argument("--tellcanu",nargs=1, type=str, default="", help='''Put additional parameters to feed Canu in quotes.''')
-parser.add_argument("--tellflye",nargs=1, type=str, default="", help='''Put additional parameters to feed Flye in quotes.''')
-parser.add_argument("--tellminiasm",nargs=1, type=str, default="", help='''Put additional parameters to feed Miniasm in quotes.''')
+parser.add_argument("--tellcanu", type=str, default="", help='''Put additional parameters to feed Canu in quotes.''')
+parser.add_argument("--tellflye", type=str, default="", help='''Put additional parameters to feed Flye in quotes.''')
+parser.add_argument("--tellminiasm", type=str, default="", help='''Put additional parameters to feed Miniasm in quotes.''')
 
 ## Debug messages (for development purposes)
 parser.add_argument('--debug', action='store_true', default=False)
