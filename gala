@@ -632,7 +632,10 @@ for i in dirnames:
 
 ## DO STEP IF NEEDED OR REQUESTED, PASS IF NOT
 
-if dostep('Step_10', continuefrom, passdonesteps):
+if True:		## dostep('Step_10', continuefrom, passdonesteps):
+    			## There is code in this entire block needed in downstream steps; 
+			## for example, updating the "ok" dictionary.
+			## Can potentially bring write an else-statement w/ downstream needs at a later date (to avoid over-writing previous files).
     print("\nStep 10 : CWD : " + os.getcwd() + "\n")
     sys.stdout.flush()
 
