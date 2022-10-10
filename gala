@@ -154,7 +154,7 @@ if args.hifi:
 elif args.sac:
     ## if pacbio data and --sac specified, just default to corrected pacbio params, not hifi.
     flyeplatform = flyeplatform.replace('corr','hq').replace('raw','hq') if 'nano' in flyeplatform else 'pacbio-corr' 
-    platform     = "pacbio-hifi 'batOptions=-eg 0.10 -sb 0.01 -dg 2 -db 1 -dr 3'"
+    platform     = "pacbio-hifi correctedErrorRate=0.12 'batOptions=-eg 0.10 -sb 0.01 -dg 2 -db 1 -dr 3'"
     if args.forcetrim:
        platform += "-untrimmed"
 
