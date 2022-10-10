@@ -865,7 +865,7 @@ for i in mapping:
                     SCRIPT = new_path+dirname+'/assembly_' + asmr[0] + '.sh'
 
                     if args.slurm:
-                        JOBNAME = '-J ' + sub_step_name
+                        JOBNAME = '-J ' + asmr_step_name
                         OUTNAME = '-o ' + 'slurm-' + asmr_step_name + '-%A.out'
                         CMD = ' '.join([SBATCH_CMD_PRE[asmr], JOBNAME, OUTNAME, SCRIPT])
                     else:
