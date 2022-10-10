@@ -795,7 +795,7 @@ sys.stdout.flush()
 
 for i in mapping:
     dirname = i.split('=')[0]
-    sub_step_name = 'Step_12_sh_assembly' + dirname
+    sub_step_name = 'Step_12_sh_assembly_' + dirname
 
     if dostep(sub_step_name, continuefrom, passdonesteps):
         try:
@@ -822,7 +822,7 @@ for i in mapping:
         exitcode = os.system(CMD)
 
         ## Quit if exitcode non-zero; make touch file otherwise
-        assess_progress(exitcode, 'Step_12_sh_assembly' + i )
+        assess_progress( exitcode, sub_step_name )
         sys.stdout.flush()
 
 
