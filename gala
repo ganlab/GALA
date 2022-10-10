@@ -726,6 +726,7 @@ sys.stdout.flush()
 if 'canu' in assembler:
     for i in dirnames:
         rmn = open(new_path+i+'/assembly_c.sh','w')
+        rmn.writelines('#!/bin/bash\n')
         CD  = os.path.join(new_path,i)
         os.chdir( CD )
         print("\nStep12 : canu loop : changedir : " + CD + "\n")
@@ -742,9 +743,13 @@ if 'canu' in assembler:
             print(CANUCMD+"\n")
             sys.stdout.flush()
 
+        ## CLOSE RMN (especially important for very last RMN file created when using SLURM)
+        rmn.close()
+
 if 'flye' in assembler:
     for i in dirnames:
         rmn = open(new_path+i+'/assembly_f.sh','w')
+        rmn.writelines('#!/bin/bash\n')
         CD  = os.path.join(new_path,i)
         os.chdir( CD )
         print("\nStep12	: Flye loop : changedir	: " + CD + "\n")
@@ -765,9 +770,13 @@ if 'flye' in assembler:
             print(FLYECMD+"\n")
             sys.stdout.flush()
 
+        ## CLOSE RMN (especially important for very last RMN file created when using SLURM)
+        rmn.close()
+
 if 'miniasm' in assembler:
     for i in dirnames:
         rmn = open(new_path+i+'/assembly_m.sh','w')
+        rmn.writelines('#!/bin/bash\n')
         CD  = os.path.join(new_path,i)
         os.chdir( CD )
         print("\nStep12 : Miniasm loop : changedir : " + CD + "\n")
@@ -795,6 +804,9 @@ if 'miniasm' in assembler:
             rmn.writelines(FLYEPOLCMD+'\n')
             print(MM2CMD + "\n" + MACMD + "\n" + FLYEPOLCMD + "\n")
             sys.stdout.flush()
+
+        ## CLOSE RMN (especially important for very last RMN file created when using SLURM)
+        rmn.close()
 
 ## EXECUTE ASSEMBLIES
 os.chdir(workdir)
