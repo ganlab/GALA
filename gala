@@ -79,6 +79,24 @@ parser.add_argument("--continue_from", type=int, default=1, help='''GALA will lo
 	12 = Run assemblies.
 	''')
 
+## SLURM-ify:	Allow assemblies tobe submitted to SLURM (TODO: allow assembly alignment and read mapping steps to be parallel-submitted to SLURM 
+parser.add_argument("--slurm",  action='store_true', default=False, help='''Submit various steps to SLURM. At the moment, this only submits assemblies in Step 12.''')
+parser.add_argument("--tellslurm_canu_mem", type=str, default='16G', help='''Default 16G. Provide value for --mem in sbatch command when submitting chr_by_chr Canu assemblies. Canu will further auto-detect SLURM and submit further downstream jobs. Use --tellcanu to give Canu more options to control those steps (e.g. gridOptions).''')
+parser.add_argument("--tellslurm_flye_mem", type=str, default='100G', help='''Default 100G. Provide value for --mem in sbatch command when submitting chr_by_chr Flye assemblies. Flye assemblies are completed inside this single sbatch command (no intermal submissions like Canu). Adequate resources need to be specified.''')
+parser.add_argument("--tellslurm_miniasm_mem", type=str, default='48G', help='''Default 48G. Provide value for --mem in sbatch command when submitting chr_by_chr Miniasm assemblies. Miniasm assemblies are completed inside this single sbatch command (no intermal submissions like Canu). Adequate resources need to be specified.''')
+
+parser.add_argument("--tellslurm_canu_time", type=str, default='12:00:00', help='''Default 12:00:00. Provide value for --time in sbatch command when submitting chr_by_chr Canu assemblies. Canu will further auto-detect SLURM and submit further downstream jobs. Use --tellcanu to give Canu more options to control those steps (e.g. gridOptions).''')
+parser.add_argument("--tellslurm_flye_time", type=str, default='24:00:00', help='''Default 24:00:00. Provide value for --time in sbatch command when submitting chr_by_chr Flye assemblies. Flye assemblies are completed inside this single sbatch command (no intermal submissions like Canu). Adequate resources need to be specified.''')
+parser.add_argument("--tellslurm_miniasm_time", type=str, default='24:00:00', help='''Default 24:00:00. Provide value for --time in sbatch command when submitting chr_by_chr Miniasm assemblies. Miniasm assemblies are completed inside this single sbatch command (no intermal submissions like Canu). Adequate resources need to be specified.''')
+
+parser.add_argument("--tellslurm_canu_ntasks", type=str, default='2', help='''Default 2. Provide value for --ntasks in sbatch command when submitting chr_by_chr Canu assemblies. Canu will further auto-detect SLURM and submit further downstream jobs. Use --tellcanu to give Canu more options to control those steps (e.g. gridOptions).''')
+parser.add_argument("--tellslurm_flye_ntasks", type=str, default='16', help='''Default 16. Provide value for --ntasks in sbatch command when submitting chr_by_chr Flye assemblies. Flye assemblies are completed inside this single sbatch command (no intermal submissions like Canu). Adequate resources need to be specified. Please also use "--tellflye" to specify "--threads", and give the same number as here.''')
+parser.add_argument("--tellslurm_miniasm_ntasks", type=str, default='16', help='''Default 16. Provide value for --ntasks in sbatch command when submitting chr_by_chr Miniasm assemblies. Miniasm assemblies are completed inside this single sbatch command (no intermal submissions like Canu). Adequate resources need to be specified. Please also use "--tellminiasm" to specify "-t", and give the same number as here. FLye-polishing at end of Miniasm pipeline uses the --threads argument for number of threads.''')
+
+parser.add_argument("--tellslurm_canu", type=str, default="", help='''Provide inside quotes. Use these additional options with sbatch command when submitting chr_by_chr Canu assemblies. Note: -J, -o, --export=ALL, and --nodes=1 are automatically created/used by GALA, and --mem, --time, and --ntasks have their own GALA arguments.''')
+parser.add_argument("--tellslurm_flye", type=str, default="", help='''Provide inside quotes. Use these additional options with sbatch command when submitting chr_by_chr Flye assemblies. Note: -J, -o, --export=ALL, and --nodes=1 are automatically created/used by GALA, and --mem, --time, and --ntasks have their own GALA arguments.''')
+parser.add_argument("--tellslurm_miniasm", type=str, default="", help='''Provide inside quotes. Use these additional options with sbatch command when submitting chr_by_chr Miniasm assemblies. Note: -J, -o, --export=ALL, and --nodes=1 are automatically created/used by GALA, and --mem, --time, and --ntasks have their own GALA arguments.''')
+
 ## High quality read data options
 parser_hq = parser.add_mutually_exclusive_group(required=False)
 parser_hq.add_argument("--hifi", action='store_true', default=False, help='''Use this flag if long read data is >99 pct accuracy on average. Default : assumes false. Affects some paramter choices. Typically for PacBioHiFi, but perhaps can work with Nanopore Q20/Q30 chemistry (avg accuracy >99 pct).''')
@@ -764,9 +782,9 @@ if 'miniasm' in assembler:
             GFA        = px+'.gfa'
             FA         = px+'.fa'
             GZIPPIPE   = '| gzip -1 > ' + OVERLAPS
-            MM2CMD     = ' '.join(['minimap2', mm2type_asm, READS, READS, GZIPPIPE])
+            MM2CMD     = ' '.join(['minimap2', mm2type_asm, extraMiniasmparameters, READS, READS, GZIPPIPE])
             MACMD      = ' '.join(['miniasm -f', READS, OVERLAPS, '>', GFA])
-            FLYEPOLCMD = ' '.join(['flye --polish-target', FA, '--out-dir .', '--'+ flyeplatform, READS, '--iterations 3'])
+            FLYEPOLCMD = ' '.join(['flye --polish-target', FA, '--out-dir .', '--'+ flyeplatform, READS, '--iterations 3', '--threads', str(args.threads)])
 
             rmn.writelines('cd ' + cddir + '\n')
             rmn.writelines('mkdir -p miniasm_'+px+'\n') 
@@ -793,6 +811,15 @@ os.chdir(CD)
 print("\nStep12 : EXECUTE : changedir : " + CD + "\n")
 sys.stdout.flush()
 
+
+
+if args.slurm:
+    SBATCH_CMD_CANU_PRE = ' '.join(['sbatch --nodes=1 --export=ALL --mem='+args.tellslurm_canu_mem, '--time='+args.tellslurm_canu_time, '--ntasks='+args.tellslurm_canu_ntasks])
+    SBATCH_CMD_FLYE_PRE = ' '.join(['sbatch --nodes=1 --export=ALL --mem='+args.tellslurm_flye_mem, '--time='+args.tellslurm_flye_time, '--ntasks='+args.tellslurm_flye_ntasks])
+    SBATCH_CMD_MINI_PRE = ' '.join(['sbatch --nodes=1 --export=ALL --mem='+args.tellslurm_miniasm_mem, '--time='+args.tellslurm_miniasm_time, '--ntasks='+args.tellslurm_miniasm_ntasks])
+
+
+
 for i in mapping:
     dirname = i.split('=')[0]
     sub_step_name = 'Step_12_sh_assembly_' + dirname
@@ -815,14 +842,35 @@ for i in mapping:
         ## Would need --tellslurm_canu --tellslurm_flye --tellslurm_flye submit options for each ; 
         ## canu needs less b/c its autopipeline. flye and miniasm will need to be given appropriate time, mem, and threads options... 
         ## --threads given to the assemblers would need to be consisten w/ slurm request.
-        CMD = 'sh '+new_path+dirname+'/assembly_*.sh'
-        print(CMD+"\n")
-        sys.stdout.flush()
 
-        exitcode = os.system(CMD)
+        for asmr in ['canu', 'flye', 'miniasm']:
+            if asmr in assembler:
+                asmr_step_name = sub_step_name + '_' + asmr
 
+                if dostep(asmr_step_name, continuefrom, passdonesteps):
+
+                    SCRIPT = new_path+dirname+'/assembly_' + asmr[0] + '.sh'
+
+                    if args.slurm:
+                        JOBNAME = '-J ' + sub_step_name
+                        OUTNAME = '-o ' + 'slurm-' + sub_step_name + '-%A.out'
+                        CMD = ' '.join([SBATCH_CMD_CANU_PRE, JOBNAME, OUTNAME, SCRIPT])
+                    else:
+                        CMD = 'sh ' + SCRIPT
+
+                    print(CMD+"\n")
+                    sys.stdout.flush()
+
+                    exitcode = os.system(CMD)
+
+                    ## Quit if exitcode non-zero; make touch file otherwise
+                    assess_progress( exitcode, asmr_step_name )
+                    sys.stdout.flush()
+
+
+        ## ENTIRE STEP CHECK: default True for now (if got here, it almost must be).
         ## Quit if exitcode non-zero; make touch file otherwise
-        assess_progress( exitcode, sub_step_name )
+        assess_progress( 0, sub_step_name )
         sys.stdout.flush()
 
 
