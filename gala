@@ -91,7 +91,7 @@ parser.add_argument("--tellslurm_miniasm_time", type=str, default='24:00:00', he
 
 parser.add_argument("--tellslurm_canu_ntasks", type=str, default='2', help='''Default 2. Provide value for --ntasks in sbatch command when submitting chr_by_chr Canu assemblies. Canu will further auto-detect SLURM and submit further downstream jobs. Use --tellcanu to give Canu more options to control those steps (e.g. gridOptions).''')
 parser.add_argument("--tellslurm_flye_ntasks", type=str, default='16', help='''Default 16. Provide value for --ntasks in sbatch command when submitting chr_by_chr Flye assemblies. Flye assemblies are completed inside this single sbatch command (no intermal submissions like Canu). Adequate resources need to be specified. Please also use "--tellflye" to specify "--threads", and give the same number as here.''')
-parser.add_argument("--tellslurm_miniasm_ntasks", type=str, default='16', help='''Default 16. Provide value for --ntasks in sbatch command when submitting chr_by_chr Miniasm assemblies. Miniasm assemblies are completed inside this single sbatch command (no intermal submissions like Canu). Adequate resources need to be specified. Please also use "--tellminiasm" to specify "-t", and give the same number as here. FLye-polishing at end of Miniasm pipeline uses the --threads argument for number of threads.''')
+parser.add_argument("--tellslurm_miniasm_ntasks", type=str, default='16', help='''Default 16. Provide value for --ntasks in sbatch command when submitting chr_by_chr Miniasm assemblies. Miniasm assemblies are completed inside this single sbatch command (no intermal submissions like Canu). Adequate resources need to be specified. Please also use "--tellminiasm" to specify " -t" (need the space in front of -t inside the quotes to avoid tripping up GALA argument parsing), and give the same number as here. FLye-polishing at end of Miniasm pipeline uses the --threads argument for number of threads.''')
 
 parser.add_argument("--tellslurm_canu", type=str, default="", help='''Provide inside quotes. Use these additional options with sbatch command when submitting chr_by_chr Canu assemblies. Note: -J, -o, --export=ALL, and --nodes=1 are automatically created/used by GALA, and --mem, --time, and --ntasks have their own GALA arguments.''')
 parser.add_argument("--tellslurm_flye", type=str, default="", help='''Provide inside quotes. Use these additional options with sbatch command when submitting chr_by_chr Flye assemblies. Note: -J, -o, --export=ALL, and --nodes=1 are automatically created/used by GALA, and --mem, --time, and --ntasks have their own GALA arguments.''')
@@ -782,7 +782,7 @@ if 'miniasm' in assembler:
             GFA        = px+'.gfa'
             FA         = px+'.fa'
             GZIPPIPE   = '| gzip -1 > ' + OVERLAPS
-            MM2CMD     = ' '.join(['minimap2', mm2type_asm, extraMiniasmparameters, READS, READS, GZIPPIPE])
+            MM2CMD     = ' '.join(['minimap2', mm2type_asm, extraMINIASMparameters, READS, READS, GZIPPIPE])
             MACMD      = ' '.join(['miniasm -f', READS, OVERLAPS, '>', GFA])
             FLYEPOLCMD = ' '.join(['flye --polish-target', FA, '--out-dir .', '--'+ flyeplatform, READS, '--iterations 3', '--threads', str(args.threads)])
 
