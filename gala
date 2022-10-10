@@ -546,10 +546,14 @@ if dostep(map_step_name, continuefrom, passdonesteps):
 ##########################################################################################################################
 
 ## MAY BE NEEDED EVEN IF SKIPPING STEP
+
 new_path=workdir+'/'+'mapping/'
 #os.chdir(workdir+'/mapping')	## Uses same dir established as "new_path", so commented out, and added next line.
 os.chdir(new_path)
 
+
+
+## DO STEP IF NEEDED OR REQUESTED, PASS IF NOT
 
 if dostep('Step_9', continuefrom, passdonesteps):
     sys.stdout.flush()
@@ -605,42 +609,51 @@ if dostep('Step_9', continuefrom, passdonesteps):
 
     ## Quit if exitcode non-zero; make touch file otherwise
     assess_progress(0, 'Step_9')
+    sys.stdout.flush()
 
 
 ##########################################################################################################################
 ## 10. Use the cat command to concatenate read name files belongs to the same scaffolding group.
 ##########################################################################################################################
+
+## MAY BE NEEDED EVEN IF SKIPPING STEP
+dirnames=[]
+for i in mapping:
+    dirnames.append( i.strip().split('=')[0] )
+
+scaffs	= os.path.join(outpath,name)
+li 	= os.listdir(scaffs)
+
+ok = {}
+for i in dirnames:
+    ok[i]={}
+
+
+
+## DO STEP IF NEEDED OR REQUESTED, PASS IF NOT
+
 if dostep('Step_10', continuefrom, passdonesteps):
-    sys.stdout.flush()
     print("\nStep 10 : CWD : " + os.getcwd() + "\n")
-
-    dirnames=[]
-    for i in mapping:
-        dirnames.append(i.split('=')[0])
-
-    scaffs=os.path.join(outpath,name)
-    li=os.listdir(scaffs)
-
-    ok={}
-    for i in dirnames:
-        ok[i]={}
+    sys.stdout.flush()
 
     for base in dirnames:
-        op=list(open(scaffs+'/'+name+'_'+base+'.scaff'))
-        oa=open(new_path+base+'/scaffolds','w')
+        op = list(open(scaffs+'/'+name+'_'+base+'.scaff'))
+        oa = open(new_path+base+'/scaffolds','w')
         oa.writelines('cd bams\n')
-        nn=1
+
+        nn = 1
         for bas in op:
             if bas[:6]=='scaff_':
-                rr=bas.split('\t')
-                rmn=rr[-2]
-                rr=rr[:-2]
-                rr='\t'.join(rr[1:]).replace('\n','')
-                rr=rr.replace('\t','.bam.read_names ')
-                rr='cat '+rr+'.bam.read_names > ../scaffold_'+str(nn)+'.read_names\n'
-                ok[base]['scaffold_'+str(nn)]=str(rmn).replace('\n','')
+                rr  = bas.split('\t')
+                rmn = rr[-2]
+                rr  = rr[:-2]
+                rr  = '\t'.join(rr[1:]).replace('\n','')
+                rr  = rr.replace('\t','.bam.read_names ')
+                rr  = 'cat '+rr+'.bam.read_names > ../scaffold_'+str(nn)+'.read_names\n'
+
+                ok[base]['scaffold_'+str(nn)] = str(rmn).replace('\n','')
                 oa.writelines(rr)
-                nn=nn+1
+                nn = nn+1
         oa.close()
 
     ## TODO: come up with success-check for this step
@@ -649,6 +662,11 @@ if dostep('Step_10', continuefrom, passdonesteps):
 ##########################################################################################################################
 ## 11. Use the readsep Module to separate each scaffold correlated-reads.
 ##########################################################################################################################
+
+## MAY BE NEEDED EVEN IF SKIPPING STEP
+
+
+## DO STEP IF NEEDED OR REQUESTED, PASS IF NOT
 if dostep('Step_11', continuefrom, passdonesteps):
     print("\nStep 11 : CWD : " + os.getcwd() + "\n")
     sys.stdout.flush()
@@ -663,10 +681,10 @@ if dostep('Step_11', continuefrom, passdonesteps):
         ## Quit if exitcode non-zero; make touch file otherwise
         assess_progress(exitcode, 'Step_11_scaffolds' + i )
 
-        mm=list(open('scaffolds'))[1:]
+        mm = list(open('scaffolds'))[1:]
 
         for base in mm:
-            mn=base.split(' > ../')[-1].replace('\n','')
+            mn = base.split(' > ../')[-1].replace('\n','')
             print("\nStep 11 : read_extract : \n\t reads : " + reads + "\n\t mn : " + mn + "\n\t input_file : " + input_file + "\n")
             sys.stdout.flush()
             read_extract(reads, mn, input_file)
@@ -685,38 +703,38 @@ sys.stdout.flush()
 
 if 'canu' in assembler:
     for i in dirnames:
-        rmn=open(new_path+i+'/assembly_c.sh','w')
-        CD = os.path.join(new_path,i)
+        rmn = open(new_path+i+'/assembly_c.sh','w')
+        CD  = os.path.join(new_path,i)
         os.chdir( CD )
         print("\nStep12 : canu loop : changedir : " + CD + "\n")
         sys.stdout.flush()
-        mm=list(open('scaffolds'))[1:]
+        mm  = list(open('scaffolds'))[1:]
         for base in mm:
-            mn = base.split(' > ../')[-1].replace('.read_names\n','.read.fq')
-            px = mn.replace('.read.fq','')
-            gs = str(int(ok[i][px])/1000000)
-            npimn = new_path + i + '/' + mn
+            mn      = base.split(' > ../')[-1].replace('.read_names\n','.read.fq')
+            px      = mn.replace('.read.fq','')
+            gs      = str(int(ok[i][px])/1000000)
+            npimn   = new_path + i + '/' + mn
             CANUCMD = ' '.join(['canu -p canu_'+px, ' -d canu_'+px, extraCANUparameters, 'genomeSize='+gs+'m', '-'+platform, npimn])
-            #rmn.writelines('canu -p canu_'+mn.replace('.read.fq','')+ ' -d canu_'+mn.replace('.read.fq','')+' genomeSize='+str(int(ok[i][mn.replace('.read.fq','')])/1000000)+ 'm -' +platform+' '+new_path+i+'/'+mn+'\n')
+            ####rmn.writelines('canu -p canu_'+mn.replace('.read.fq','')+ ' -d canu_'+mn.replace('.read.fq','')+' genomeSize='+str(int(ok[i][mn.replace('.read.fq','')])/1000000)+ 'm -' +platform+' '+new_path+i+'/'+mn+'\n')
             rmn.writelines(CANUCMD+'\n')
             print(CANUCMD+"\n")
             sys.stdout.flush()
 
 if 'flye' in assembler:
     for i in dirnames:
-        rmn=open(new_path+i+'/assembly_f.sh','w')
-        CD = os.path.join(new_path,i)
+        rmn = open(new_path+i+'/assembly_f.sh','w')
+        CD  = os.path.join(new_path,i)
         os.chdir( CD )
         print("\nStep12	: Flye loop : changedir	: " + CD + "\n")
         sys.stdout.flush()
-        mm=list(open('scaffolds'))[1:]
+        mm  = list(open('scaffolds'))[1:]
         for base in mm:
-            mn=base.split(' > ../')[-1].replace('.read_names\n','.read.fq')
-            px=mn.replace('.read.fq','')
-            gs=str(int(ok[i][mn.replace('.read.fq','')])/1000000)
-            npimn = new_path+i+'/'+mn
-            cddir=workdir+'/chr_by_chr/'+i
-            FLYECMD=' '.join(['flye --out-dir flye_'+px, extraFLYEparameters, '--genome-size', gs+'m', '--'+flyeplatform, npimn])
+            mn      = base.split(' > ../')[-1].replace('.read_names\n','.read.fq')
+            px      = mn.replace('.read.fq','')
+            gs      = str(int(ok[i][mn.replace('.read.fq','')])/1000000)
+            npimn   = new_path+i+'/'+mn
+            cddir   = workdir+'/chr_by_chr/'+i
+            FLYECMD = ' '.join(['flye --out-dir flye_'+px, extraFLYEparameters, '--genome-size', gs+'m', '--'+flyeplatform, npimn])
 
             rmn.writelines('cd ' + cddir + '\n')
             rmn.writelines('mkdir -p flye_'+px + '\n')
@@ -727,24 +745,24 @@ if 'flye' in assembler:
 
 if 'miniasm' in assembler:
     for i in dirnames:
-        rmn=open(new_path+i+'/assembly_m.sh','w')
-        CD = os.path.join(new_path,i)
+        rmn = open(new_path+i+'/assembly_m.sh','w')
+        CD  = os.path.join(new_path,i)
         os.chdir( CD )
         print("\nStep12 : Miniasm loop : changedir : " + CD + "\n")
         sys.stdout.flush()
-        mm=list(open('scaffolds'))[1:]
+        mm  = list(open('scaffolds'))[1:]
         for base in mm:
-            mn=base.split(' > ../')[-1].replace('.read_names\n','.read.fq')
-            px=mn.replace('.read.fq','')
-            cddir=workdir+'/chr_by_chr/'+i
-            READS=new_path+i+'/'+mn
-            OVERLAPS=px+'.paf.gz'
-            GFA=px+'.gfa'
-            FA=px+'.fa'
-            GZIPPIPE='| gzip -1 > ' + OVERLAPS
-            MM2CMD=' '.join(['minimap2', mm2type_asm, READS, READS, GZIPPIPE])
-            MACMD=' '.join(['miniasm -f', READS, OVERLAPS, '>', GFA])
-            FLYEPOLCMD=' '.join(['flye --polish-target', FA, '--out-dir .', '--'+ flyeplatform, READS, '--iterations 3'])
+            mn         = base.split(' > ../')[-1].replace('.read_names\n','.read.fq')
+            px         = mn.replace('.read.fq','')
+            cddir      = workdir+'/chr_by_chr/'+i
+            READS      = new_path+i+'/'+mn
+            OVERLAPS   = px+'.paf.gz'
+            GFA        = px+'.gfa'
+            FA         = px+'.fa'
+            GZIPPIPE   = '| gzip -1 > ' + OVERLAPS
+            MM2CMD     = ' '.join(['minimap2', mm2type_asm, READS, READS, GZIPPIPE])
+            MACMD      = ' '.join(['miniasm -f', READS, OVERLAPS, '>', GFA])
+            FLYEPOLCMD = ' '.join(['flye --polish-target', FA, '--out-dir .', '--'+ flyeplatform, READS, '--iterations 3'])
 
             rmn.writelines('cd ' + cddir + '\n')
             rmn.writelines('mkdir -p miniasm_'+px+'\n') 
@@ -772,7 +790,7 @@ print("\nStep12 : EXECUTE : changedir : " + CD + "\n")
 sys.stdout.flush()
 
 for i in mapping:
-    dirname=i.split('=')[0]
+    dirname = i.split('=')[0]
     try:
         os.mkdir(workdir+'/chr_by_chr/'+dirname)
     except:
