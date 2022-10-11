@@ -107,6 +107,8 @@ parser.add_argument("--forcetrim", action='store_true', default=False, help='''O
 parser.add_argument("--tellcanu", type=str, default="", help='''Put additional parameters to feed Canu in quotes.''')
 parser.add_argument("--tellflye", type=str, default="", help='''Put additional parameters to feed Flye in quotes.''')
 parser.add_argument("--tellminiasm", type=str, default="", help='''Put additional parameters to feed Miniasm in quotes.''')
+parser.add_argument("--flyepol_iters", type=int, default=1, help='''Number of Flye-polishing rounds for Flye and Miniasm assemblies. Default = 1 (formerly 3).''')
+parser.add_argument('--skip-miniasm-polish', dest="skip_miniasm_polish", action='store_true', default=False, help='''Don't perform Flye-polishing on Miniasm assemblies. Only perform Minimap2 and Miniasm steps.''')
 
 ## Debug messages (for development purposes)
 parser.add_argument('--debug', action='store_true', default=False)
@@ -761,7 +763,8 @@ if 'flye' in assembler:
             gs      = str(int(ok[i][mn.replace('.read.fq','')])/1000000)
             npimn   = new_path+i+'/'+mn
             cddir   = workdir+'/chr_by_chr/'+i
-            FLYECMD = ' '.join(['flye --out-dir flye_'+px, extraFLYEparameters, '--genome-size', gs+'m', '--'+flyeplatform, npimn])
+            ##FLYECMD = ' '.join(['flye --out-dir flye_'+px, extraFLYEparameters, '--genome-size', gs+'m', '--'+flyeplatform, npimn])
+            FLYECMD = ' '.join(['flye --out-dir flye_'+px, '--iterations',  str(args.flyepol_iters), extraFLYEparameters, '--genome-size', gs+'m', '--'+flyeplatform, npimn])
 
             rmn.writelines('cd ' + cddir + '\n')
             rmn.writelines('mkdir -p flye_'+px + '\n')
@@ -793,17 +796,26 @@ if 'miniasm' in assembler:
             GZIPPIPE   = '| gzip -1 > ' + OVERLAPS
             MM2CMD     = ' '.join(['minimap2', mm2type_asm, extraMINIASMparameters, READS, READS, GZIPPIPE])
             MACMD      = ' '.join(['miniasm -f', READS, OVERLAPS, '>', GFA])
-            FLYEPOLCMD = ' '.join(['flye --polish-target', FA, '--out-dir .', '--'+ flyeplatform, READS, '--iterations 3', '--threads', str(args.threads)])
+            FLYEPOLCMD = ' '.join(['flye --polish-target', FA, '--out-dir .', '--'+ flyeplatform, READS, '--iterations',  str(args.flyepol_iters), '--threads', str(args.threads)])
+            
+            if args.skip_miniasm_polish:
+                FULLCMD = MM2CMD + "\n" + MACMD + "\n" + "\n"
+            else:
+                FULLCMD = MM2CMD + "\n" + MACMD + "\n" + FLYEPOLCMD + "\n"
 
             rmn.writelines('cd ' + cddir + '\n')
             rmn.writelines('mkdir -p miniasm_'+px+'\n') 
             rmn.writelines('cd miniasm_'+px + '\n')
-            rmn.writelines(MM2CMD+'\n')
-            rmn.writelines(MACMD+'\n')
-            rmn.writelines("awk " + "'/^S/{print " + '">"$2"\\n"$3}' + "' " + GFA + ' > ' + FA + '\n')
-            rmn.writelines(FLYEPOLCMD+'\n')
-            print(MM2CMD + "\n" + MACMD + "\n" + FLYEPOLCMD + "\n")
+            rmn.writelines(FULLCMD+'\n')
+            print(FULLCMD+'\n')
+
             sys.stdout.flush()
+            ## Older lines - delete soon.
+            ##rmn.writelines(MM2CMD+'\n')
+            ##rmn.writelines(MACMD+'\n')
+            ##rmn.writelines("awk " + "'/^S/{print " + '">"$2"\\n"$3}' + "' " + GFA + ' > ' + FA + '\n')
+            ##rmn.writelines(FLYEPOLCMD+'\n')
+            ##print(MM2CMD + "\n" + MACMD + "\n" + FLYEPOLCMD + "\n")
 
         ## CLOSE RMN (especially important for very last RMN file created when using SLURM)
         rmn.close()
