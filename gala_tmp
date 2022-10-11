@@ -880,24 +880,31 @@ for i in mapping:
 
                     for SCRIPT in CMDFILES:
 
-                        linkage_group = os.path.basename(SCRIPT.strip()).replace('.sh','').split('_')[-1]
-                        asmr_substep_name = asmr_step_name + '_' + linkage_group
+                        if dostep(asmr_substep_name, continuefrom, passdonesteps):
+                            linkage_group = os.path.basename(SCRIPT.strip()).replace('.sh','').split('_')[-1]
+                            asmr_substep_name = asmr_step_name + '_' + linkage_group
 
-                        if args.slurm:
-                            JOBNAME = '-J ' + asmr_substep_name
-                            OUTNAME = '-o ' + 'slurm-' + asmr_substep_name + '-%A.out'
-                            CMD = ' '.join([SBATCH_CMD_PRE[asmr], JOBNAME, OUTNAME, SCRIPT])
-                        else:
-                            CMD = 'sh ' + SCRIPT
+                            if args.slurm:
+                                JOBNAME = '-J ' + asmr_substep_name
+                                OUTNAME = '-o ' + 'slurm-' + asmr_substep_name + '-%A.out'
+                                CMD = ' '.join([SBATCH_CMD_PRE[asmr], JOBNAME, OUTNAME, SCRIPT])
+                            else:
+                                CMD = 'sh ' + SCRIPT
 
-                        print(CMD+"\n")
-                        sys.stdout.flush()
+                            print(CMD+"\n")
+                            sys.stdout.flush()
+    
+                            exitcode = os.system(CMD)
 
-                        exitcode = os.system(CMD)
+                            ## Quit if exitcode non-zero; make touch file otherwise
+                            assess_progress( exitcode, asmr_substep_name )
+                            sys.stdout.flush()
 
-                        ## Quit if exitcode non-zero; make touch file otherwise
-                        assess_progress( exitcode, asmr_step_name )
-                        sys.stdout.flush()
+                       
+                    ## ASMR CHECK: default True for now (if got here, it almost must be).
+                    ## Quit if exitcode non-zero; make touch file otherwise
+                    assess_progress( 0, asmr_step_name )
+                    sys.stdout.flush()
 
 
         ## ENTIRE STEP CHECK: default True for now (if got here, it almost must be).
