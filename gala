@@ -12,7 +12,7 @@
 ##########################################################################################################################
 ## GLOBAL MODULES
 ##########################################################################################################################
-import os, sys, argparse
+import os, sys, argparse, glob
 
 
 ##########################################################################################################################
@@ -727,8 +727,6 @@ sys.stdout.flush()
 
 if 'canu' in assembler:
     for i in dirnames:
-        rmn = open(new_path+i+'/assembly_c.sh','w')
-        rmn.writelines('#!/bin/bash\n')
         CD  = os.path.join(new_path,i)
         os.chdir( CD )
         print("\nStep12 : canu loop : changedir : " + CD + "\n")
@@ -741,17 +739,17 @@ if 'canu' in assembler:
             npimn   = new_path + i + '/' + mn
             CANUCMD = ' '.join(['canu -p canu_'+px, ' -d canu_'+px, extraCANUparameters, 'genomeSize='+gs+'m', '-'+platform, npimn])
             ####rmn.writelines('canu -p canu_'+mn.replace('.read.fq','')+ ' -d canu_'+mn.replace('.read.fq','')+' genomeSize='+str(int(ok[i][mn.replace('.read.fq','')])/1000000)+ 'm -' +platform+' '+new_path+i+'/'+mn+'\n')
+            rmn = open(new_path+i+'/assembly_c_' + px + '.sh','w')
+            rmn.writelines('#!/bin/bash\n')
             rmn.writelines(CANUCMD+'\n')
             print(CANUCMD+"\n")
             sys.stdout.flush()
 
-        ## CLOSE RMN (especially important for very last RMN file created when using SLURM)
-        rmn.close()
+            ## CLOSE RMN (especially important for very last RMN file created when using SLURM)
+            rmn.close()
 
 if 'flye' in assembler:
     for i in dirnames:
-        rmn = open(new_path+i+'/assembly_f.sh','w')
-        rmn.writelines('#!/bin/bash\n')
         CD  = os.path.join(new_path,i)
         os.chdir( CD )
         print("\nStep12	: Flye loop : changedir	: " + CD + "\n")
@@ -766,6 +764,8 @@ if 'flye' in assembler:
             ##FLYECMD = ' '.join(['flye --out-dir flye_'+px, extraFLYEparameters, '--genome-size', gs+'m', '--'+flyeplatform, npimn])
             FLYECMD = ' '.join(['flye --out-dir flye_'+px, '--iterations',  str(args.flyepol_iters), extraFLYEparameters, '--genome-size', gs+'m', '--'+flyeplatform, npimn])
 
+            rmn = open(new_path+i+'/assembly_f_' + px + '.sh','w')
+            rmn.writelines('#!/bin/bash\n')
             rmn.writelines('cd ' + cddir + '\n')
             rmn.writelines('mkdir -p flye_'+px + '\n')
             rmn.writelines('cd flye_'+px + '\n')
@@ -773,13 +773,11 @@ if 'flye' in assembler:
             print(FLYECMD+"\n")
             sys.stdout.flush()
 
-        ## CLOSE RMN (especially important for very last RMN file created when using SLURM)
-        rmn.close()
+            ## CLOSE RMN (especially important for very last RMN file created when using SLURM)
+            rmn.close()
 
 if 'miniasm' in assembler:
     for i in dirnames:
-        rmn = open(new_path+i+'/assembly_m.sh','w')
-        rmn.writelines('#!/bin/bash\n')
         CD  = os.path.join(new_path,i)
         os.chdir( CD )
         print("\nStep12 : Miniasm loop : changedir : " + CD + "\n")
@@ -803,13 +801,18 @@ if 'miniasm' in assembler:
             else:
                 FULLCMD = MM2CMD + "\n" + MACMD + "\n" + FLYEPOLCMD + "\n"
 
+            rmn = open(new_path+i+'/assembly_m_' + px + '.sh','w')
+            rmn.writelines('#!/bin/bash\n')
             rmn.writelines('cd ' + cddir + '\n')
             rmn.writelines('mkdir -p miniasm_'+px+'\n') 
             rmn.writelines('cd miniasm_'+px + '\n')
             rmn.writelines(FULLCMD+'\n')
             print(FULLCMD+'\n')
-
             sys.stdout.flush()
+
+            ## CLOSE RMN (especially important for very last RMN file created when using SLURM)
+            rmn.close()
+
             ## Older lines - delete soon.
             ##rmn.writelines(MM2CMD+'\n')
             ##rmn.writelines(MACMD+'\n')
@@ -817,8 +820,6 @@ if 'miniasm' in assembler:
             ##rmn.writelines(FLYEPOLCMD+'\n')
             ##print(MM2CMD + "\n" + MACMD + "\n" + FLYEPOLCMD + "\n")
 
-        ## CLOSE RMN (especially important for very last RMN file created when using SLURM)
-        rmn.close()
 
 ## EXECUTE ASSEMBLIES
 os.chdir(workdir)
@@ -873,23 +874,38 @@ for i in mapping:
                 asmr_step_name = sub_step_name + '_' + asmr
 
                 if dostep(asmr_step_name, continuefrom, passdonesteps):
+                    
+                    CMDDIR = new_path+dirname
+                    CMDFILES = glob.glob(CMDDIR + '/assembly_' + asmr[0] + '_*.sh')
 
-                    SCRIPT = new_path+dirname+'/assembly_' + asmr[0] + '.sh'
+                    for SCRIPT in CMDFILES:
+                        linkage_group = os.path.basename(SCRIPT.strip()).replace('.sh','').split('_')[-1]
+                        asmr_substep_name = asmr_step_name + '_' + linkage_group
+                        print("Linkage Group: " + str(linkage_group) + "; Assembler substep name: " +  asmr_substep_name+"\n")
+                        sys.stdout.flush()
 
-                    if args.slurm:
-                        JOBNAME = '-J ' + asmr_step_name
-                        OUTNAME = '-o ' + 'slurm-' + asmr_step_name + '-%A.out'
-                        CMD = ' '.join([SBATCH_CMD_PRE[asmr], JOBNAME, OUTNAME, SCRIPT])
-                    else:
-                        CMD = 'sh ' + SCRIPT
+                        if dostep(asmr_substep_name, continuefrom, passdonesteps):
 
-                    print(CMD+"\n")
-                    sys.stdout.flush()
+                            if args.slurm:
+                                JOBNAME = '-J ' + asmr_substep_name
+                                OUTNAME = '-o ' + 'slurm-' + asmr_substep_name + '-%A.out'
+                                CMD = ' '.join([SBATCH_CMD_PRE[asmr], JOBNAME, OUTNAME, SCRIPT])
+                            else:
+                                CMD = 'sh ' + SCRIPT
 
-                    exitcode = os.system(CMD)
+                            print(CMD+"\n")
+                            sys.stdout.flush()
+    
+                            exitcode = os.system(CMD)
 
+                            ## Quit if exitcode non-zero; make touch file otherwise
+                            assess_progress( exitcode, asmr_substep_name )
+                            sys.stdout.flush()
+
+                       
+                    ## ASMR CHECK: default True for now (if got here, it almost must be).
                     ## Quit if exitcode non-zero; make touch file otherwise
-                    assess_progress( exitcode, asmr_step_name )
+                    assess_progress( 0, asmr_step_name )
                     sys.stdout.flush()
 
 
