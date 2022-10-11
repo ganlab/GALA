@@ -794,12 +794,13 @@ if 'miniasm' in assembler:
             GZIPPIPE   = '| gzip -1 > ' + OVERLAPS
             MM2CMD     = ' '.join(['minimap2', mm2type_asm, extraMINIASMparameters, READS, READS, GZIPPIPE])
             MACMD      = ' '.join(['miniasm -f', READS, OVERLAPS, '>', GFA])
+            GFA2FA     = "awk " + "'/^S/{print " + '">"$2"\\n"$3}' + "' " + GFA + ' > ' + FA
             FLYEPOLCMD = ' '.join(['flye --polish-target', FA, '--out-dir .', '--'+ flyeplatform, READS, '--iterations',  str(args.flyepol_iters), '--threads', str(args.threads)])
             
             if args.skip_miniasm_polish:
-                FULLCMD = MM2CMD + "\n" + MACMD + "\n" + "\n"
+                FULLCMD = MM2CMD + "\n" + MACMD + "\n" + GFA2FA + "\n"
             else:
-                FULLCMD = MM2CMD + "\n" + MACMD + "\n" + FLYEPOLCMD + "\n"
+                FULLCMD = MM2CMD + "\n" + MACMD + "\n" + GFA2FA + "\n" FLYEPOLCMD + "\n"
 
             rmn = open(new_path+i+'/assembly_m_' + px + '.sh','w')
             rmn.writelines('#!/bin/bash\n')
