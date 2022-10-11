@@ -880,9 +880,10 @@ for i in mapping:
 
                     for SCRIPT in CMDFILES:
 
+                        linkage_group = os.path.basename(SCRIPT.strip()).replace('.sh','').split('_')[-1]
+                        asmr_substep_name = asmr_step_name + '_' + linkage_group
+
                         if dostep(asmr_substep_name, continuefrom, passdonesteps):
-                            linkage_group = os.path.basename(SCRIPT.strip()).replace('.sh','').split('_')[-1]
-                            asmr_substep_name = asmr_step_name + '_' + linkage_group
 
                             if args.slurm:
                                 JOBNAME = '-J ' + asmr_substep_name
