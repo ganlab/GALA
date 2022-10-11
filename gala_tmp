@@ -882,6 +882,9 @@ for i in mapping:
 
                         linkage_group = os.path.basename(SCRIPT.strip()).replace('.sh','').split('_')[-1]
                         asmr_substep_name = asmr_step_name + '_' + linkage_group
+			print(linkage_group)
+			print("Linkage Group: " + str(linkage_group) + "; Assembler substep name: " +  asmr_substep_name+"\n")
+                        sys.stdout.flush()
 
                         if dostep(asmr_substep_name, continuefrom, passdonesteps):
 
