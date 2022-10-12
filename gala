@@ -61,7 +61,7 @@ parser.add_argument('-v','--version', action='version', version='%(prog)s 1.0.1'
 
 
 ## Speeding up the Gala pipeline
-parser.add_argument("--threads", type=int, default=4, dest="threads", help='''Number of threads to use with Minimap2 and BWA.''')
+parser.add_argument("--threads", type=int, default=4, dest="threads", help='''Number of threads to use with Minimap2, BWA, Flye, and other commands that allow parallel threads. Canu auto-detects resources (and auto-generates SLURM jobs).''')
 parser.add_argument("--fastmode", action='store_true', default=False, help='''Use Minimap2 for read-mapping steps instead of BWA.''')
 parser.add_argument("--resume", action='store_true', default=False, help='''GALA will look for last successfully completed step, and continue (resume). It will redo any steps along pipeline that do not have Step_xxx.done touch files...''')
 parser.add_argument("--continue_from", type=int, default=1, help='''GALA will look try to start from step specified:
@@ -89,13 +89,11 @@ parser.add_argument("--tellslurm_canu_time", type=str, default='12:00:00', help=
 parser.add_argument("--tellslurm_flye_time", type=str, default='24:00:00', help='''Default 24:00:00. Provide value for --time in sbatch command when submitting chr_by_chr Flye assemblies. Flye assemblies are completed inside this single sbatch command (no intermal submissions like Canu). Adequate resources need to be specified.''')
 parser.add_argument("--tellslurm_miniasm_time", type=str, default='24:00:00', help='''Default 24:00:00. Provide value for --time in sbatch command when submitting chr_by_chr Miniasm assemblies. Miniasm assemblies are completed inside this single sbatch command (no intermal submissions like Canu). Adequate resources need to be specified.''')
 
-parser.add_argument("--tellslurm_canu_ntasks", type=str, default='2', help='''Default 2. Provide value for --ntasks in sbatch command when submitting chr_by_chr Canu assemblies. Canu will further auto-detect SLURM and submit further downstream jobs. Use --tellcanu to give Canu more options to control those steps (e.g. gridOptions).''')
-parser.add_argument("--tellslurm_flye_ntasks", type=str, default='16', help='''Default 16. Provide value for --ntasks in sbatch command when submitting chr_by_chr Flye assemblies. Flye assemblies are completed inside this single sbatch command (no intermal submissions like Canu). Adequate resources need to be specified. Please also use "--tellflye" to specify "--threads", and give the same number as here.''')
-parser.add_argument("--tellslurm_miniasm_ntasks", type=str, default='16', help='''Default 16. Provide value for --ntasks in sbatch command when submitting chr_by_chr Miniasm assemblies. Miniasm assemblies are completed inside this single sbatch command (no intermal submissions like Canu). Adequate resources need to be specified. Please also use "--tellminiasm" to specify " -t" (need the space in front of -t inside the quotes to avoid tripping up GALA argument parsing), and give the same number as here. FLye-polishing at end of Miniasm pipeline uses the --threads argument for number of threads.''')
+parser.add_argument("--tellslurm_canu", type=str, default="", help='''Provide inside quotes. Use these additional options with sbatch command when submitting chr_by_chr Canu assemblies. Note: -J, -o, --export=ALL, and --nodes=1 are automatically created/used by GALA, the --threads arg in gala is used for --ntasks in SLURM, and --mem/--time have their own GALA arguments.''')
+parser.add_argument("--tellslurm_flye", type=str, default="", help='''Provide inside quotes. Use these additional options with sbatch command when submitting chr_by_chr Flye assemblies. Note: -J, -o, --export=ALL, and --nodes=1 are automatically created/used by GALA, the --threads arg in gala is used for --ntasks in SLURM, and --mem/--time have their own GALA arguments.''')
+parser.add_argument("--tellslurm_miniasm", type=str, default="", help='''Provide inside quotes. Use these additional options with sbatch command when submitting chr_by_chr Miniasm assemblies. Note: -J, -o, --export=ALL, and --nodes=1 are automatically created/used by GALA, the --threads arg in gala is used for --ntasks in SLURM, and --mem/--time have their own GALA arguments.''')
 
-parser.add_argument("--tellslurm_canu", type=str, default="", help='''Provide inside quotes. Use these additional options with sbatch command when submitting chr_by_chr Canu assemblies. Note: -J, -o, --export=ALL, and --nodes=1 are automatically created/used by GALA, and --mem, --time, and --ntasks have their own GALA arguments.''')
-parser.add_argument("--tellslurm_flye", type=str, default="", help='''Provide inside quotes. Use these additional options with sbatch command when submitting chr_by_chr Flye assemblies. Note: -J, -o, --export=ALL, and --nodes=1 are automatically created/used by GALA, and --mem, --time, and --ntasks have their own GALA arguments.''')
-parser.add_argument("--tellslurm_miniasm", type=str, default="", help='''Provide inside quotes. Use these additional options with sbatch command when submitting chr_by_chr Miniasm assemblies. Note: -J, -o, --export=ALL, and --nodes=1 are automatically created/used by GALA, and --mem, --time, and --ntasks have their own GALA arguments.''')
+
 
 ## High quality read data options
 parser_hq = parser.add_mutually_exclusive_group(required=False)
@@ -118,6 +116,14 @@ parser.add_argument('--debug', action='store_true', default=False)
 
 ## Parse.
 args = parser.parse_args()
+
+## DEPRECATED FOR NOW
+## SLURM NTASKS : will just use --threads to control all of this for now. It makes the scripting less complicated to leave off. Using these adds little extra benefit, especially with the control the user now has with --resume and keeping/deleting various touch files.
+#parser.add_argument("--tellslurm_canu_ntasks", type=str, default='2', help='''Default 2. Provide value for --ntasks in sbatch command when submitting chr_by_chr Canu assemblies. Canu will further auto-detect SLURM and submit further downstream jobs. Use --tellcanu to give Canu more options to control those steps (e.g. gridOptions).''')
+#parser.add_argument("--tellslurm_flye_ntasks", type=str, default='16', help='''Default 16. Provide value for --ntasks in sbatch command when submitting chr_by_chr Flye assemblies. Flye assemblies are completed inside this single sbatch command (no intermal submissions like Canu). Adequate resources need to be specified. Please also use "--tellflye" to specify "--threads", and give the same number as here.''')
+#parser.add_argument("--tellslurm_miniasm_ntasks", type=str, default='16', help='''Default 16. Provide value for --ntasks in sbatch command when submitting chr_by_chr Miniasm assemblies. Miniasm assemblies are completed inside this single sbatch command (no intermal submissions like Canu). Adequate resources need to be specified. Please also use "--tellminiasm" to specify " -t" (need the space in front of -t inside the quotes to avoid tripping up GALA argument parsing), and give the same number as here. FLye-polishing at end of Miniasm pipeline uses the --threads argument for number of threads.''')
+## Former tellslurm_x help: '''Provide inside quotes. Use these additional options with sbatch command when submitting chr_by_chr Miniasm assemblies. Note: -J, -o, --export=ALL, and --nodes=1 are automatically created/used by GALA, and --mem, --time, and --ntasks have their own GALA arguments.'''
+
 
 
 ##########################################################################################################################
@@ -516,9 +522,9 @@ if dostep(map_step_name, continuefrom, passdonesteps):
     for i in mapping:
         dirname  = i.strip().split('=')[0]
         genomdir = i.strip().split('=')[1]
-        ##SAMPIPE=''.join(['| samtools sort | samtools view -Sb > mapping/', dirname, '/mapping.bam'])
-        ## Default output of samtools sort is already BAM; also above command lacked -h flag, so header was missing.
-        SAMPIPE=''.join(['| samtools sort > mapping/', dirname, '/mapping.bam'])
+        ############SAMPIPE=''.join(['| samtools sort | samtools view -Sb > mapping/', dirname, '/mapping.bam'])
+        ##Default output of samtools sort is already BAM; also above command lacked -h flag, so header was missing.
+        SAMPIPE=''.join(['| samtools sort --threads ', str(args.threads), ' > mapping/', dirname, '/mapping.bam'])
         SAMIDXCMD=''.join(['samtools index mapping/', dirname, '/mapping.bam'])
         ## GET MAPPING COMMAND (MAPCMD)
         if not args.fastmode:
@@ -737,7 +743,7 @@ if 'canu' in assembler:
             px      = mn.replace('.read.fq','')
             gs      = str(int(ok[i][px])/1000000)
             npimn   = new_path + i + '/' + mn
-            CANUCMD = ' '.join(['canu -p canu_'+px, ' -d canu_'+px, extraCANUparameters, 'genomeSize='+gs+'m', '-'+platform, npimn])
+            CANUCMD = ' '.join(['canu -p canu_'+px, ' -d canu_'+px, extraCANUparameters, 'genomeSize='+gs+'m', '-'+platform, npimn]) 		## No need to give Canu args.threads
             ####rmn.writelines('canu -p canu_'+mn.replace('.read.fq','')+ ' -d canu_'+mn.replace('.read.fq','')+' genomeSize='+str(int(ok[i][mn.replace('.read.fq','')])/1000000)+ 'm -' +platform+' '+new_path+i+'/'+mn+'\n')
             rmn = open(new_path+i+'/assembly_c_' + px + '.sh','w')
             rmn.writelines('#!/bin/bash\n')
@@ -762,7 +768,7 @@ if 'flye' in assembler:
             npimn   = new_path+i+'/'+mn
             cddir   = workdir+'/chr_by_chr/'+i
             ##FLYECMD = ' '.join(['flye --out-dir flye_'+px, extraFLYEparameters, '--genome-size', gs+'m', '--'+flyeplatform, npimn])
-            FLYECMD = ' '.join(['flye --out-dir flye_'+px, '--iterations',  str(args.flyepol_iters), extraFLYEparameters, '--genome-size', gs+'m', '--'+flyeplatform, npimn])
+            FLYECMD = ' '.join(['flye --out-dir flye_'+px, '--threads', str(args.threads), '--iterations',  str(args.flyepol_iters), extraFLYEparameters, '--genome-size', gs+'m', '--'+flyeplatform, npimn])
 
             rmn = open(new_path+i+'/assembly_f_' + px + '.sh','w')
             rmn.writelines('#!/bin/bash\n')
@@ -792,7 +798,7 @@ if 'miniasm' in assembler:
             GFA        = px+'.gfa'
             FA         = px+'.fa'
             GZIPPIPE   = '| gzip -1 > ' + OVERLAPS
-            MM2CMD     = ' '.join(['minimap2', mm2type_asm, extraMINIASMparameters, READS, READS, GZIPPIPE])
+            MM2CMD     = ' '.join(['minimap2', mm2type_asm, '-t', str(args.threads), extraMINIASMparameters, READS, READS, GZIPPIPE])
             MACMD      = ' '.join(['miniasm -f', READS, OVERLAPS, '>', GFA])
             GFA2FA     = "awk " + "'/^S/{print " + '">"$2"\\n"$3}' + "' " + GFA + ' > ' + FA
             FLYEPOLCMD = ' '.join(['flye --polish-target', FA, '--out-dir .', '--'+ flyeplatform, READS, '--iterations',  str(args.flyepol_iters), '--threads', str(args.threads)])
@@ -800,7 +806,7 @@ if 'miniasm' in assembler:
             if args.skip_miniasm_polish:
                 FULLCMD = MM2CMD + "\n" + MACMD + "\n" + GFA2FA + "\n"
             else:
-                FULLCMD = MM2CMD + "\n" + MACMD + "\n" + GFA2FA + "\n" FLYEPOLCMD + "\n"
+                FULLCMD = MM2CMD + "\n" + MACMD + "\n" + GFA2FA + "\n" + FLYEPOLCMD + "\n"
 
             rmn = open(new_path+i+'/assembly_m_' + px + '.sh','w')
             rmn.writelines('#!/bin/bash\n')
@@ -841,9 +847,14 @@ sys.stdout.flush()
 
 if args.slurm:
     SBATCH_CMD_PRE = {}
-    SBATCH_CMD_PRE['canu'] = ' '.join(['sbatch --nodes=1 --export=ALL --mem='+args.tellslurm_canu_mem, '--time='+args.tellslurm_canu_time, '--ntasks='+args.tellslurm_canu_ntasks])
-    SBATCH_CMD_PRE['flye'] = ' '.join(['sbatch --nodes=1 --export=ALL --mem='+args.tellslurm_flye_mem, '--time='+args.tellslurm_flye_time, '--ntasks='+args.tellslurm_flye_ntasks])
-    SBATCH_CMD_PRE['miniasm'] = ' '.join(['sbatch --nodes=1 --export=ALL --mem='+args.tellslurm_miniasm_mem, '--time='+args.tellslurm_miniasm_time, '--ntasks='+args.tellslurm_miniasm_ntasks])
+    SBATCH_CMD_PRE['canu'] = ' '.join(['sbatch --nodes=1 --export=ALL --mem='+args.tellslurm_canu_mem, '--time='+args.tellslurm_canu_time, '--ntasks='+str(+args.threads) ])
+    SBATCH_CMD_PRE['flye'] = ' '.join(['sbatch --nodes=1 --export=ALL --mem='+args.tellslurm_flye_mem, '--time='+args.tellslurm_flye_time, '--ntasks='+str(args.threads)])
+    SBATCH_CMD_PRE['miniasm'] = ' '.join(['sbatch --nodes=1 --export=ALL --mem='+args.tellslurm_miniasm_mem, '--time='+args.tellslurm_miniasm_time, '--ntasks='+str(args.threads)])
+
+    ## FORMER SBATCH LINES
+    ## SBATCH_CMD_PRE['canu'] = ' '.join(['sbatch --nodes=1 --export=ALL --mem='+args.tellslurm_canu_mem, '--time='+args.tellslurm_canu_time, '--ntasks='+args.tellslurm_canu_ntasks])
+    ## SBATCH_CMD_PRE['flye'] = ' '.join(['sbatch --nodes=1 --export=ALL --mem='+args.tellslurm_flye_mem, '--time='+args.tellslurm_flye_time, '--ntasks='+args.tellslurm_flye_ntasks])
+    ## SBATCH_CMD_PRE['miniasm'] = ' '.join(['sbatch --nodes=1 --export=ALL --mem='+args.tellslurm_miniasm_mem, '--time='+args.tellslurm_miniasm_time, '--ntasks='+args.tellslurm_miniasm_ntasks])
 
 
 
