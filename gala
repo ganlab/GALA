@@ -106,6 +106,7 @@ parser.add_argument("--tellcanu", type=str, default="", help='''Put additional p
 parser.add_argument("--tellflye", type=str, default="", help='''Put additional parameters to feed Flye in quotes.''')
 parser.add_argument("--tellminiasm", type=str, default="", help='''Put additional parameters to feed Miniasm in quotes.''')
 parser.add_argument("--flyepol_iters", type=int, default=1, help='''Number of Flye-polishing rounds for Flye and Miniasm assemblies. Default = 1 (formerly 3).''')
+parser.add_argument('--flye-resume', dest="flye_resume", action='store_true', default=False, help='''Tell Flye to resume from where it left off. Can use this with Gala --resume if Flye jobs don't finish. You will need to manually delete Flye assembly touch files though (for now).''')
 parser.add_argument('--skip-miniasm-polish', dest="skip_miniasm_polish", action='store_true', default=False, help='''Don't perform Flye-polishing on Miniasm assemblies. Only perform Minimap2 and Miniasm steps.''')
 
 ## Debug messages (for development purposes)
@@ -191,6 +192,8 @@ extraMM2parameters_asms=' '.join(['-t', str(args.threads)])
 extraMM2parameters_reads=' '.join(['-t', str(args.threads), mm2type])
 extraCANUparameters = args.tellcanu
 extraFLYEparameters = args.tellflye
+if args.flye_resume:
+    extraFLYEparameters += " --resume"
 extraMINIASMparameters = args.tellminiasm
 
 
