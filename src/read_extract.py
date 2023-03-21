@@ -20,8 +20,8 @@ def read_extract(read_file,names_file,file_type='fa'):
         d[base.replace('\n','')]=''
     if file_type=='fa' or file_type=='fasta':
         a=list(a)
-    	if read_file[-2:]=='gz':
-                a=map(lambda i:i.decode("utf-8"), a)
+        if read_file[-2:]=='gz':
+            a=map(lambda i:i.decode("utf-8"), a)
         a=''.join(a)
         a=a.split('>')[1:]
         for bo in a:
@@ -36,7 +36,7 @@ def read_extract(read_file,names_file,file_type='fa'):
             line2 = a.readline()
             line3 = a.readline()
             line4 = a.readline()
-    	    if read_file[-2:]=='gz':
+            if read_file[-2:]=='gz':
                 line1=line1.decode("utf-8")
                 line2=line2.decode("utf-8")
                 line3=line3.decode("utf-8")
